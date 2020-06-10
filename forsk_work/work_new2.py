@@ -11,7 +11,8 @@ import numpy as np
 
 Main_file=input("Enter Your Main File Name(Without Extension) :")
 df4 = pd.read_excel("{}.xlsx".format(Main_file))
-
+total_column = len(df4.columns.tolist())
+df4.dropna(thresh=total_column-5,inplace=True)
 df4_copy = df4.copy()
 
 df4_copy["Zoom id"] = np.nan
@@ -51,9 +52,6 @@ df4.columns = ["Name", "Email", "Gender", "College Name", "WhatsApp No."]
 
   
 
-
-
-
 File_Total=int(input("Enter the Number of File You want to Enter:"))
 
 
@@ -69,7 +67,15 @@ prt_to_reg = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name',
   
 t2 = pd.DataFrame(columns=['Name', 'Email', 'Gender', 'College Name', 'WhatsApp No.'])
 
+
+#Before updated sheet
+before_updated_day = []  
+for file_i in range(File_Total):
+    a = "day_"+str(file_i)
+    before_updated_day.append(a)
+
     
+
   
 for file in range(File_Total):
       
@@ -257,19 +263,19 @@ for file in range(File_Total):
     
     
     #code for update excel sheet
-    if file == 0:
-        prt_to_reg_zoom_id_list = prt_to_reg["Zoom id"].tolist()
-        prt_to_reg_Email_list = prt_to_reg["Email"].tolist()
-        df4_copy_email_list = df4_copy[df4_column_list[1]].tolist()
-        
-        for prt_to_reg_zoom_id_index,prt_to_reg_zoom_id_email in enumerate(prt_to_reg_zoom_id_list):
-            for df4_copy_email_index,df4_copy_email in enumerate(df4_copy_email_list):
-                if prt_to_reg_zoom_id_email == df4_copy_email:
-                    df4_copy["Zoom id"][df4_copy_email_index] = prt_to_reg["Email"][prt_to_reg_zoom_id_index]
-                    df4_copy["Matched"][df4_copy_email_index] = "True"
-                    break
+    prt_to_reg_zoom_id_list = prt_to_reg["Zoom id"].tolist()
+    prt_to_reg_Email_list = prt_to_reg["Email"].tolist()
+    df4_copy_email_list = df4_copy[df4_column_list[1]].tolist()
     
-    df4_copy["Matched"] = df4_copy["Matched"].fillna("False")
+    for prt_to_reg_zoom_id_index,prt_to_reg_zoom_id_email in enumerate(prt_to_reg_zoom_id_list):
+        for df4_copy_email_index,df4_copy_email in enumerate(df4_copy_email_list):
+            if prt_to_reg_zoom_id_email == df4_copy_email:
+                df4_copy["Zoom id"][df4_copy_email_index] = prt_to_reg["Email"][prt_to_reg_zoom_id_index]
+                df4_copy["Matched"][df4_copy_email_index] = "True"
+                break
+    
+    
+#    df4_copy["Matched"] = df4_copy["Matched"].fillna("False")
     
     
     
@@ -414,64 +420,66 @@ for file in range(File_Total):
     suspence_t2 = pd.DataFrame(suspence_t2)
     suspence_t2.reset_index(inplace = True, drop = True)  
     
-    if file == 0:
-        #work for all suspence data
-        t2 = t2.append(suspence_t2)
     
-        #daywise suspence data
-        merge = pd.merge(suspence_t1, suspence_t2, how='outer', on='Email')
-        
-        merge = merge[['Name_x', 'Email', 'Time', 'Name_y', 'Gender', 'College Name', 'WhatsApp No.']]
+    #work for all suspence data
+#    t2 = t2.append(suspence_t2)
     
-        merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.']
     
-        merge["Zoom id"] = np.nan
+
+    #daywise suspence data
+    merge = pd.merge(suspence_t1, suspence_t2, how='outer', on='Email')
     
-    else:
-        df4_copy_Email_list = df4_copy[df4_column_list[1]].values.tolist()
-        suspence_t2_Email_list = suspence_t2['Email'].values.tolist() 
-        
-        suspence_real_t2 = []
-        absent_t2 = []
-        
-        for suspence_t2_index,suspence_t2_Email in enumerate(suspence_t2_Email_list):
-            for df4_copy_index,df4_copy_Email in enumerate(df4_copy_Email_list):
-                if suspence_t2_Email == df4_copy_Email:
-                    if df4_copy["Matched"][df4_copy_index] == "True":
-                        absent_t2.append(suspence_t2.iloc[suspence_t2_index,])
-                    else:
-                        suspence_real_t2.append(suspence_t2.iloc[suspence_t2_index,])
-        
-        #this for suspence_t2
-        suspence_real_t2 = pd.DataFrame(suspence_real_t2)
-        suspence_real_t2.reset_index(inplace = True, drop = True)
+    merge = merge[['Name_x', 'Email', 'Time', 'Name_y', 'Gender', 'College Name', 'WhatsApp No.']]
+
+    merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.']
+
+    merge["Zoom id"] = np.nan
     
-        #this for absent list
-        absent_t2 = pd.DataFrame(absent_t2)
-        absent_t2.reset_index(inplace = True, drop = True) 
-        absent_t2["Zoom Name"] = np.nan
-        absent_t2["Time"] = np.nan
-        
-        absent_t2 = absent_t2[['Zoom Name', 'Email', 'Time', 'Name', 'Gender', 'College Name', 'WhatsApp No.']]
-        absent_t2.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.']
-        absent_t2["Zoom id"] = np.nan
-        
-        #work for all suspence data
-        t2 = t2.append(suspence_real_t2)
-    
-        #daywise suspence data
-        merge = pd.merge(suspence_t1, suspence_real_t2, how='outer', on='Email')
-        
-        merge = merge[['Name_x', 'Email', 'Time', 'Name_y', 'Gender', 'College Name', 'WhatsApp No.']]
-        
-        merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.']
-    
-        merge["Zoom id"] = np.nan
-    
-        merge = merge.append(pd.Series("nan"), ignore_index=True)
-        merge = merge.drop([0],axis=1) 
-        new_row={"Zoom Name":"Absent","Email":"Data"}
-        merge = merge.append(new_row,ignore_index=True)
+#    else:
+#        df4_copy_Email_list = df4_copy[df4_column_list[1]].values.tolist()
+#        suspence_t2_Email_list = suspence_t2['Email'].values.tolist() 
+#        
+#        suspence_real_t2 = []
+#        absent_t2 = []
+#        
+#        for suspence_t2_index,suspence_t2_Email in enumerate(suspence_t2_Email_list):
+#            for df4_copy_index,df4_copy_Email in enumerate(df4_copy_Email_list):
+#                if suspence_t2_Email == df4_copy_Email:
+#                    if df4_copy["Matched"][df4_copy_index] == "True":
+#                        absent_t2.append(suspence_t2.iloc[suspence_t2_index,])
+#                    else:
+#                        suspence_real_t2.append(suspence_t2.iloc[suspence_t2_index,])
+#        
+#        #this for suspence_t2
+#        suspence_real_t2 = pd.DataFrame(suspence_real_t2)
+#        suspence_real_t2.reset_index(inplace = True, drop = True)
+#    
+#        #this for absent list
+#        absent_t2 = pd.DataFrame(absent_t2)
+#        absent_t2.reset_index(inplace = True, drop = True) 
+#        absent_t2["Zoom Name"] = np.nan
+#        absent_t2["Time"] = np.nan
+#        
+#        absent_t2 = absent_t2[['Zoom Name', 'Email', 'Time', 'Name', 'Gender', 'College Name', 'WhatsApp No.']]
+#        absent_t2.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.']
+#        absent_t2["Zoom id"] = np.nan
+#        
+#        #work for all suspence data
+#        t2 = t2.append(suspence_real_t2)
+#    
+#        #daywise suspence data
+#        merge = pd.merge(suspence_t1, suspence_real_t2, how='outer', on='Email')
+#        
+#        merge = merge[['Name_x', 'Email', 'Time', 'Name_y', 'Gender', 'College Name', 'WhatsApp No.']]
+#        
+#        merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.']
+#    
+#        merge["Zoom id"] = np.nan
+#    
+#        merge = merge.append(pd.Series("nan"), ignore_index=True)
+#        merge = merge.drop([0],axis=1) 
+#        new_row={"Zoom Name":"Absent","Email":"Data"}
+#        merge = merge.append(new_row,ignore_index=True)
     
     
     prt_to_reg = prt_to_reg.sort_values("Time", ascending = False)
@@ -482,6 +490,7 @@ for file in range(File_Total):
     new_row={"Zoom Name":"Suspense","Email":"Data"}
     prt_to_reg = prt_to_reg.append(new_row,ignore_index=True)   
     
+    
     #for full.csv
     my_copy = prt_to_reg[:-2].copy()
     dataframe_name[file] = my_copy
@@ -489,17 +498,105 @@ for file in range(File_Total):
     dataframe_name[file].columns = ["Name", "Zoom id", "Time"]
     dataframe_name[file]["Date"] = file+1
     
-    if file == 0:
-        frame=[prt_to_reg,merge]
-        result=pd.concat(frame)
-        result.reset_index(inplace = True, drop = True)
-        result.to_csv("Day{}.csv".format(file_number), index = False)   
+    
+    frame=[prt_to_reg,merge]
+    result=pd.concat(frame)
+    result.reset_index(inplace = True, drop = True)
+    
+    #Now we will just store the result data in --> before_updated_day
+    before_updated_day[file] = result
+    
+#    result.to_csv("Day{}.csv".format(file_number), index = False)   
          
+   
+df4_copy["Matched"] = df4_copy["Matched"].fillna("False")
+    
+    
+#Now code for creating daywise file and seprate the absent section
+    
+for day_index in range(File_Total):
+    null_index1 = before_updated_day[day_index][before_updated_day[day_index]["Zoom Name"].isnull()].index.tolist()[0]
+    null_index2 = before_updated_day[day_index][before_updated_day[day_index]["Zoom Name"].isnull()].index.tolist()[1]
+    
+    #seprate section
+    present_data = before_updated_day[day_index].iloc[:null_index1,]
+    present_data = present_data.append(pd.Series("nan"), ignore_index=True)
+    present_data = present_data.drop([0],axis=1) 
+    new_row={"Zoom Name":"Suspense","Email":"Data"}
+    present_data = present_data.append(new_row,ignore_index=True)
+    
+    
+    #unregistered section
+    t1_suspence = before_updated_day[day_index].iloc[null_index1+2 : null_index2,]
+    
+    #with this data we will seprate absent data
+    t2_suspence = before_updated_day[day_index].iloc[null_index2 : ,]
+    
+    df4_copy_Email_list = df4_copy[df4_column_list[1]].values.tolist()
+    t2_suspence_Email_list = t2_suspence['Email'].values.tolist() 
+    
+    t2_real_suspence = []
+    t2_absent = []
+    
+    for t2_suspence_index,t2_suspence_Email in enumerate(t2_suspence_Email_list):
+        for df4_copy_index,df4_copy_Email in enumerate(df4_copy_Email_list):
+            if t2_suspence_Email == df4_copy_Email:
+                if df4_copy["Matched"][df4_copy_index] == "True":
+                    t2_absent.append(t2_suspence.iloc[t2_suspence_index,])
+                else:
+                    t2_real_suspence.append(t2_suspence.iloc[t2_suspence_index,])
+
+    #this for suspence_t2
+    t2_real_suspence = pd.DataFrame(t2_real_suspence)
+    t2_real_suspence.reset_index(inplace = True, drop = True)
+
+    #copy of t2_real_suspence for all suspence
+    t2_real_suspence_copy = t2_real_suspence.copy()
+
+
+    #daywise suspence data
+    merge = pd.merge(suspence_t1, t2_real_suspence, how='outer', on='Email')
+        
+    merge = merge[['Name', 'Email', 'Time_x', 'Registered Name', 'Gender', 'College Name', 'WhatsApp No.','Zoom id']]
+        
+    merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id']
+
+    #add a nun row for absent data
+    merge = merge.append(pd.Series("nan"), ignore_index=True)
+    merge = merge.drop([0],axis=1) 
+    new_row={"Zoom Name":"Absent","Email":"Data"}
+    merge = merge.append(new_row,ignore_index=True)
+    
+     
+    
+    #this for absent list
+    if len(t2_absent) == 0:
+        t2_absent = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
     else:
-        frame=[prt_to_reg,merge,absent_t2]
-        result=pd.concat(frame)
-        result.reset_index(inplace = True, drop = True)
-        result.to_csv("Day{}.csv".format(file_number), index = False)
+        t2_absent = pd.DataFrame(t2_absent)
+        t2_absent.reset_index(inplace = True, drop = True)
+        t2_absent["Zoom Name"] = np.nan
+        t2_absent["Time"] = np.nan
+    
+    
+    #work for all suspence data
+    real_suspence = t2_real_suspence_copy[['Registered Name', 'Email', 'Gender', 'College Name', 'WhatsApp No.']]   
+    real_suspence.columns = ['Name','Email','Gender','College Name','WhatsApp No.']
+    t2 = t2.append(real_suspence) 
+                       
+
+    daywise_frame = [present_data,merge,t2_absent]
+    daywise_result = pd.concat(daywise_frame)
+    daywise_result.reset_index(inplace = True, drop = True)
+
+    #this number will print on daywise file name
+    daynumber = (int(file_number) - int(File_Total)) + (day_index+1)
+    
+    daywise_result.to_csv("Day{}.csv".format(daynumber), index = False)
+
+
+
+
 
 
 
