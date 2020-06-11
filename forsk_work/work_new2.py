@@ -6,17 +6,39 @@ Created on Sun Jun  7 13:27:28 2020
 """
 
 import pandas as pd
-from re import search
 import numpy as np
+import os 
 
-Main_file=input("Enter Your Main File Name(Without Extension) :")
-df4 = pd.read_excel("{}.xlsx".format(Main_file))
+Meeting_id = int(input("Enter your Meeting Id: "))
+
+
+df4 = pd.read_excel("{}.xlsx".format(Meeting_id))
 total_column = len(df4.columns.tolist())
-df4.dropna(thresh=total_column-5,inplace=True)
+df4.dropna(thresh=total_column-8,inplace=True)
 df4_copy = df4.copy()
 
-df4_copy["Zoom id"] = np.nan
-df4_copy["Matched"] = np.nan
+#df4_copy["Zoom id"] = np.nan
+#df4_copy["Matched"] = np.nan
+
+
+
+#checking that how many files are exists in directory
+files_name = []
+if os.path.isfile("Day_0_participants_{}.csv".format(Meeting_id)):
+    files_name.append("Day_0_participants_{}.csv".format(Meeting_id))
+
+count = 1
+while True:
+    if os.path.isfile("Day_{}_participants_{}.csv".format(count,Meeting_id)):
+        files_name.append("Day_{}_participants_{}.csv".format(count,Meeting_id))
+    else:
+        break
+    count += 1
+    
+#File_Total is tell us that how many files are exists
+File_Total = len(files_name)
+
+
 
 df4_column_list = [] 
 
@@ -52,9 +74,6 @@ df4.columns = ["Name", "Email", "Gender", "College Name", "WhatsApp No."]
 
   
 
-File_Total=int(input("Enter the Number of File You want to Enter:"))
-
-
 #for full.csv 
 dataframe_name = []  
 for file_i in range(File_Total):
@@ -77,15 +96,13 @@ for file_i in range(File_Total):
     
 
   
-for file in range(File_Total):
+for file_index,file_name in enumerate(files_name):
       
-    
-    
-    File_Name=input("Enter the "+ str(file) +" File Name")
+    File_Name = file_name
     
     file_number = File_Name[4]
     
-    df1 = pd.read_csv("{}.csv".format(File_Name))
+    df1 = pd.read_csv("{}".format(File_Name))
     
     df1 = df1[df1.columns.tolist()]
     
@@ -156,9 +173,11 @@ for file in range(File_Total):
     
     
     for zoom_index, zoom_name in enumerate(zoom_list):
+        counter = 0
         if "." in str(zoom_Email_list[zoom_index]):
             for data1_Email_index,data1_Email in enumerate(data1_Email_list):
                 if str(zoom_Email_list[zoom_index]).upper().strip() == str(data1_Email).upper().strip():
+                    counter += 1
                     zoom_name = zoom_name.split()
                     zoom_name = " ".join(list(filter(lambda x : len(x)>2, zoom_name)))
                     
@@ -171,41 +190,45 @@ for file in range(File_Total):
 #                        f["Zoom id"][zoom_index] = data1_Email
 #                        df4_copy["Zoom id"][data1_Email_index] = data1_Email
                         break
-                
-            else:
-                zoom_name = zoom_name.split()
-                zoom_name = " ".join(list(filter(lambda x : len(x)>2, zoom_name)))
-                if data1_list_filter.count(zoom_name) > 1:
-                        suspence_store.append(zoom_index)
-                        
+            if counter == 0:
+                if str(zoom_Email_list[zoom_index]) in df4_copy['Zoom id'].values.tolist():
+                    df_copy_index = df4_copy['Zoom id'].values.tolist().index(str(zoom_Email_list[zoom_index]))
+                    store.append(df_copy_index)
+                    zoom_store.append(zoom_index)               
                 else:
-                    name = zoom_name.split()
-                    set1 = []
-                    set2 = []
-                    n = 0
-                    while n < len(name):
-                        if len(name[n]) > 2:
-                            for data1_index, data1_name in enumerate(data1_list):
-                                data1_name = data1_name.split() 
-                                if name[-1] in data1_name:
-                                    set2.append(data1_index)
-                                if name[n] in data1_name:
-                                    set1.append(data1_index)
-                            break
-                        else:
-                            n += 1
-                    set3 = set(set1)
-                    set4 = set(set2)
-                    set_intersection = set3.intersection(set4)
-                    
-                    if len(set_intersection) > 0:
-                        change_list = list(set_intersection)
-                        store.append(change_list[0])
-                        zoom_store.append(zoom_index)
-#                        f["Zoom id"][zoom_index] = df4["Email"][change_list[0]]
-#                        df4_copy["Zoom id"][change_list[0]] = f['Email'][zoom_index]
+                    zoom_name = zoom_name.split()
+                    zoom_name = " ".join(list(filter(lambda x : len(x)>2, zoom_name)))
+                    if data1_list_filter.count(zoom_name) > 1:
+                            suspence_store.append(zoom_index)
+                            
                     else:
-                       suspence_store.append(zoom_index) 
+                        name = zoom_name.split()
+                        set1 = []
+                        set2 = []
+                        n = 0
+                        while n < len(name):
+                            if len(name[n]) > 2:
+                                for data1_index, data1_name in enumerate(data1_list):
+                                    data1_name = data1_name.split() 
+                                    if name[-1] in data1_name:
+                                        set2.append(data1_index)
+                                    if name[n] in data1_name:
+                                        set1.append(data1_index)
+                                break
+                            else:
+                                n += 1
+                        set3 = set(set1)
+                        set4 = set(set2)
+                        set_intersection = set3.intersection(set4)
+                        
+                        if len(set_intersection) > 0:
+                            change_list = list(set_intersection)
+                            store.append(change_list[0])
+                            zoom_store.append(zoom_index)
+    #                        f["Zoom id"][zoom_index] = df4["Email"][change_list[0]]
+    #                        df4_copy["Zoom id"][change_list[0]] = f['Email'][zoom_index]
+                        else:
+                           suspence_store.append(zoom_index) 
 
                         
                         
@@ -239,8 +262,8 @@ for file in range(File_Total):
             else:
                suspence_store.append(zoom_index) 
     
-    
-    
+#    store = [i for n, i in enumerate(store) if i not in store[:n]]
+#    zoom_store = [i for n, i in enumerate(zoom_store) if i not in zoom_store[:n]]
     
     j = 0
     for i in store:
@@ -271,7 +294,7 @@ for file in range(File_Total):
         for df4_copy_email_index,df4_copy_email in enumerate(df4_copy_email_list):
             if prt_to_reg_zoom_id_email == df4_copy_email:
                 df4_copy["Zoom id"][df4_copy_email_index] = prt_to_reg["Email"][prt_to_reg_zoom_id_index]
-                df4_copy["Matched"][df4_copy_email_index] = "True"
+                df4_copy["Matched"][df4_copy_email_index] = "TRUE"
                 break
     
     
@@ -293,10 +316,10 @@ for file in range(File_Total):
     suspence_t1.reset_index(inplace = True, drop = True)
     
     #work for all suspence data
-    if  file == 0:
+    if  file_index == 0:
         t1 = suspence_t1
     else:
-        t1 = t1.merge(right = suspence_t1, how = "outer", on = "Email", suffixes=('', '_Reg{}'.format(file)) )
+        t1 = t1.merge(right = suspence_t1, how = "outer", on = "Email", suffixes=('', '_Reg{}'.format(file_index)) )
     
     
     
@@ -342,7 +365,9 @@ for file in range(File_Total):
 #                        f["Zoom id"][zoom_index] = data1_Email
 #                        df4_copy["Zoom id"][data1_Email_index] = data1_Email
                         break
-                
+#                elif str(df4_copy["Matched"][data1_index]).upper() == True:
+#                    break
+                          
             else:
                 data1_name = data1_name.split()
                 data1_name = " ".join(list(filter(lambda x : len(x)>2, data1_name)))
@@ -493,10 +518,10 @@ for file in range(File_Total):
     
     #for full.csv
     my_copy = prt_to_reg[:-2].copy()
-    dataframe_name[file] = my_copy
-    dataframe_name[file] = dataframe_name[file][["Zoom Name","Zoom id","Time"]]
-    dataframe_name[file].columns = ["Name", "Zoom id", "Time"]
-    dataframe_name[file]["Date"] = file+1
+    dataframe_name[file_index] = my_copy
+    dataframe_name[file_index] = dataframe_name[file_index][["Zoom Name","Zoom id","Time"]]
+    dataframe_name[file_index].columns = ["Name", "Zoom id", "Time"]
+    dataframe_name[file_index]["Date"] = file_index+1
     
     
     frame=[prt_to_reg,merge]
@@ -504,12 +529,12 @@ for file in range(File_Total):
     result.reset_index(inplace = True, drop = True)
     
     #Now we will just store the result data in --> before_updated_day
-    before_updated_day[file] = result
+    before_updated_day[file_index] = result
     
 #    result.to_csv("Day{}.csv".format(file_number), index = False)   
          
    
-df4_copy["Matched"] = df4_copy["Matched"].fillna("False")
+df4_copy["Matched"] = df4_copy["Matched"].fillna("FALSE")
     
     
 #Now code for creating daywise file and seprate the absent section
@@ -539,12 +564,13 @@ for day_index in range(File_Total):
     t2_absent = []
     
     for t2_suspence_index,t2_suspence_Email in enumerate(t2_suspence_Email_list):
-        for df4_copy_index,df4_copy_Email in enumerate(df4_copy_Email_list):
-            if t2_suspence_Email == df4_copy_Email:
-                if df4_copy["Matched"][df4_copy_index] == "True":
-                    t2_absent.append(t2_suspence.iloc[t2_suspence_index,])
-                else:
-                    t2_real_suspence.append(t2_suspence.iloc[t2_suspence_index,])
+        if str(t2_suspence_Email) not in present_data["Zoom id"].values.tolist():
+            for df4_copy_index,df4_copy_Email in enumerate(df4_copy_Email_list):
+                if t2_suspence_Email == df4_copy_Email:
+                    if df4_copy["Matched"][df4_copy_index] == True:
+                        t2_absent.append(t2_suspence.iloc[t2_suspence_index,])
+                    else:
+                        t2_real_suspence.append(t2_suspence.iloc[t2_suspence_index,])
 
     #this for suspence_t2
     t2_real_suspence = pd.DataFrame(t2_real_suspence)
@@ -593,6 +619,12 @@ for day_index in range(File_Total):
     daynumber = (int(file_number) - int(File_Total)) + (day_index+1)
     
     daywise_result.to_csv("Day{}.csv".format(daynumber), index = False)
+
+
+
+df4_copy.to_excel("{}.xlsx".format(Meeting_id), index = False)
+
+
 
 
 
