@@ -293,11 +293,12 @@ for file_index,file_name in enumerate(files_name):
     for prt_to_reg_zoom_id_index,prt_to_reg_zoom_id_email in enumerate(prt_to_reg_zoom_id_list):
         for df4_copy_email_index,df4_copy_email in enumerate(df4_copy_email_list):
             if prt_to_reg_zoom_id_email == df4_copy_email:
-                df4_copy["Zoom id"][df4_copy_email_index] = prt_to_reg["Email"][prt_to_reg_zoom_id_index]
-                df4_copy["Matched"][df4_copy_email_index] = "TRUE"
+                df4_copy.loc[df4_copy_email_index,"Zoom id"] = prt_to_reg["Email"][prt_to_reg_zoom_id_index]
+                df4_copy.loc[df4_copy_email_index,"Matched"] = True
+                df4_copy.loc[df4_copy_email_index,"Zoom Name"] = prt_to_reg["Zoom Name"][prt_to_reg_zoom_id_index]
                 break
     
-    
+ 
 #    df4_copy["Matched"] = df4_copy["Matched"].fillna("False")
     
     
@@ -521,7 +522,7 @@ for file_index,file_name in enumerate(files_name):
     dataframe_name[file_index] = my_copy
     dataframe_name[file_index] = dataframe_name[file_index][["Zoom Name","Zoom id","Time"]]
     dataframe_name[file_index].columns = ["Name", "Zoom id", "Time"]
-    dataframe_name[file_index]["Date"] = file_index+1
+    dataframe_name[file_index].loc[:,"Date"] = file_index+1
     
     
     frame=[prt_to_reg,merge]
@@ -534,7 +535,7 @@ for file_index,file_name in enumerate(files_name):
 #    result.to_csv("Day{}.csv".format(file_number), index = False)   
          
    
-df4_copy["Matched"] = df4_copy["Matched"].fillna("FALSE")
+df4_copy["Matched"] = df4_copy["Matched"].fillna(False)
     
     
 #Now code for creating daywise file and seprate the absent section
@@ -622,12 +623,7 @@ for day_index in range(File_Total):
 
 
 
-df4_copy.to_excel("{}.xlsx".format(Meeting_id), index = False)
-
-
-
-
-
+#from here we will generate 4 extra details files
 
 
 
@@ -687,6 +683,8 @@ suspence_merge_list = suspence_merge_list + t1.columns.tolist()[2:]
 suspence_merge = suspence_merge[suspence_merge_list]  #now we will add this data into everyday and atleast present
     
   
+
+
 
 
 
@@ -840,9 +838,11 @@ Atleast_one_day=Atleast_one_day.drop([0],axis=1)
 new_row={df4_column_list[0]:"Suspense","Gender":"Data"}
 Atleast_one_day = Atleast_one_day.append(new_row,ignore_index=True) 
 
-suspence_merge1 = suspence_merge.rename(columns={'Name':df4_column_list[0]})
+Atleast_one_day = Atleast_one_day.rename(columns={df4_column_list[0]:'Name'})
 
-frame2 = [Atleast_one_day,suspence_merge1]
+#suspence_merge1 = suspence_merge.rename(columns={'Name':df4_column_list[0]})
+
+frame2 = [Atleast_one_day,suspence_merge]
 Atleast_one_day = pd.concat(frame2)
 Atleast_one_day.reset_index(inplace = True, drop = True)
 
@@ -890,18 +890,41 @@ final_work = final_copy.merge(right = df4, how = "outer", on = "Zoom id", suffix
 
 final_work = final_work[final_work['Zoom Name'].isnull()]
 
-final_work = final_work[['Name_Reg','Zoom id','Gender_Reg', 'College Name_Reg', 'WhatsApp No._Reg']]
+final_work_list = ['Name_Reg','Gender_Reg', 'College Name_Reg', 'WhatsApp No._Reg','Zoom Name','Zoom id']
+
+for final_list_index in range(File_Total):
+    final_day_name = "Day{}".format(final_list_index)
+    final_work_list.append(final_day_name)
+
+final_work_list.append("Total")
+
+final_work = final_work[final_work_list]
+
+final_work = final_work.rename(columns={'Name_Reg': 'Name',
+                                        'Gender_Reg': 'Gender',
+                                        'College Name_Reg': 'College Name',
+                                        'WhatsApp No._Reg': 'WhatsApp No.',
+                                        'Name_Reg': 'Name',
+                                        'Zoom id': 'Email'})
+
+final_work = final_work.append(pd.Series("nan"), ignore_index=True)
+final_work = final_work.drop([0],axis=1) 
+new_row = {'Name':"Suspense","Gender":"Data"}
+final_work = final_work.append(new_row,ignore_index=True) 
+
+
+frame4 = [final_work,suspence_merge]
+final_work = pd.concat(frame4)
+final_work.reset_index(inplace = True, drop = True)
+
 
 final_work.to_csv("Not_present_any_day.csv", index = False)
 
 
 
 
-
-
-
 #updated excel sheet
-df4_copy.to_csv("Updated_Excel _sheet.csv", index = False)
+df4_copy.to_excel("{}.xlsx".format(Meeting_id), index = False)
 
    
     
@@ -909,7 +932,7 @@ df4_copy.to_csv("Updated_Excel _sheet.csv", index = False)
     
     
     
-    
+
     
     
     
