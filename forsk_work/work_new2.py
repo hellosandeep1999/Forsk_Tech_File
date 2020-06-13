@@ -582,9 +582,9 @@ for day_index in range(File_Total):
 
 
     #daywise suspence data
-    merge = pd.merge(suspence_t1, t2_real_suspence, how='outer', on='Email')
+    merge = pd.merge(t1_suspence, t2_real_suspence, how='outer', on='Email')
         
-    merge = merge[['Name', 'Email', 'Time_x', 'Registered Name', 'Gender', 'College Name', 'WhatsApp No.','Zoom id']]
+    merge = merge[['Zoom Name_x', 'Email', 'Time_x', 'Registered Name_y', 'Gender_y', 'College Name_y', 'WhatsApp No._y','Zoom id_y']]
         
     merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id']
 
