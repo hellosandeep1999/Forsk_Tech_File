@@ -554,9 +554,11 @@ for day_index in range(File_Total):
     
     #unregistered section
     t1_suspence = before_updated_day[day_index].iloc[null_index1+2 : null_index2,]
+    t1_suspence.dropna(subset=['Zoom Name', 'Email','Time'],inplace=True)
     
     #with this data we will seprate absent data
     t2_suspence = before_updated_day[day_index].iloc[null_index2 : ,]
+    
     
     df4_copy_Email_list = df4_copy[df4_column_list[1]].values.tolist()
     t2_suspence_Email_list = t2_suspence['Email'].values.tolist() 
@@ -619,7 +621,7 @@ for day_index in range(File_Total):
     #this number will print on daywise file name
     daynumber = (int(file_number) - int(File_Total)) + (day_index+1)
     
-    daywise_result.to_csv("Day{}.csv".format(daynumber), index = False)
+    daywise_result.to_csv("Reports\Day{}.csv".format(daynumber), index = False)
 
 
 
@@ -846,7 +848,7 @@ frame2 = [Atleast_one_day,suspence_merge]
 Atleast_one_day = pd.concat(frame2)
 Atleast_one_day.reset_index(inplace = True, drop = True)
 
-Atleast_one_day.to_csv("Atleast_one_day_present.csv", index = False)    
+Atleast_one_day.to_csv("Reports\Atleast_one_day_present.csv", index = False)    
     
  
      
@@ -874,7 +876,7 @@ frame3 = [final,suspence_merge]
 final = pd.concat(frame3)
 final.reset_index(inplace = True, drop = True)
 
-final.to_csv("Full_data_present_everyday.csv", index = False)    
+final.to_csv("Reports\Full_data_present_everyday.csv", index = False)    
     
     
     
@@ -918,7 +920,7 @@ final_work = pd.concat(frame4)
 final_work.reset_index(inplace = True, drop = True)
 
 
-final_work.to_csv("Not_present_any_day.csv", index = False)
+final_work.to_csv("Reports/Not_present_any_day.csv", index = False)
 
 
 
@@ -927,24 +929,4 @@ final_work.to_csv("Not_present_any_day.csv", index = False)
 df4_copy.to_excel("{}.xlsx".format(Meeting_id), index = False)
 
    
-    
-    
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+   
