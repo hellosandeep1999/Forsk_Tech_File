@@ -32,6 +32,40 @@ if len(All_files) == check_file_count:
     if not os.path.exists("Reports"):
         os.makedirs("Reports")
 
+
+    #This Part for Reconciliation and it will check both Excel sheet if any new data than he will be update
+    if os.path.exists("Reports\{}.xlsx".format(Meeting_id)):
+       Inner_file = pd.read_excel("Reports\{}.xlsx".format(Meeting_id))
+       outer_file = pd.read_excel("{}.xlsx".format(Meeting_id)) 
+    
+       mail_id_column_name = []
+       for column_name in outer_file.columns.tolist():
+           if "MAIL" in column_name.upper():
+               mail_id_column_name.append(column_name)
+               break
+    
+    
+       Inner_file_Email_list = Inner_file[mail_id_column_name[0]].values.tolist()
+       outer_file_Email_list = outer_file[mail_id_column_name[0]].values.tolist()
+    
+       Reconcil_dataframe = pd.DataFrame(columns=Inner_file.columns.tolist())
+       Reconcil_count = 0
+       for out_Email_index,out_Email in enumerate(outer_file_Email_list):
+           if out_Email in Inner_file_Email_list:
+               INNa_index = Inner_file[Inner_file[mail_id_column_name[0]] == str(out_Email)].index[0]
+               Reconcil_dataframe = Reconcil_dataframe.append(outer_file.iloc[out_Email_index,])
+               Reconcil_dataframe["Zoom id"][Reconcil_count] = Inner_file["Zoom id"][INNa_index]
+               Reconcil_dataframe["Matched"][Reconcil_count] = Inner_file["Matched"][INNa_index]
+               Reconcil_dataframe["Zoom Name"][Reconcil_count] = Inner_file["Zoom Name"][INNa_index]
+               Reconcil_count += 1
+           else:
+              Reconcil_dataframe = Reconcil_dataframe.append(outer_file.iloc[out_Email_index,])
+              Reconcil_count += 1
+         
+       Reconcil_dataframe.to_excel("Reports/{}.xlsx".format(Meeting_id), index = False)
+    
+    
+    
     
     if os.path.exists("Reports\{}.xlsx".format(Meeting_id)):
         df4 = pd.read_excel("Reports\{}.xlsx".format(Meeting_id))
