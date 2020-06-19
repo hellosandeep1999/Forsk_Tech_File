@@ -9,8 +9,31 @@ import pandas as pd
 import numpy as np
 import os 
 import glob
+import platform
 
-Meeting_id = int(input("Enter your Meeting Id: "))
+
+Meeting_id = int(input("Please Enter your Meeting Id: "))
+
+#you want to UI or not
+UI_run = input("Are you want to See UI: ")
+
+#whats your system I want to know by platform.system()
+using_system = platform.system() 
+
+
+
+#some address which we will define here and use in whole program
+win_cloud_dir = "c:/Users/Cloud"                 #for windows
+win_master_file = "c:/Users/Cloud/Master.xlsx"   #for windows
+
+mac_cloud_dir = "/Users/Cloud"                  #for mac
+mac_master_file = "/Users/Cloud/Master.xlsx"    #for mac
+
+
+Inside_report_excel = "Reports/{}.xlsx".format(Meeting_id)  #This is for Excel sheet which is inside in Report folder
+outside_excel = "{}.xlsx".format(Meeting_id)                #outside excel sheet
+
+
 
 extension1 = 'csv'
 extension2 = 'xlsx'
@@ -46,20 +69,47 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
 
 
     #this section will be for Master sheet which have all data
-    if not os.path.exists("c:/Cloud"):
-        os.makedirs("c:/Cloud")
-    if not os.path.exists("c:/Cloud/Master.xlsx"):
-        Master = pd.DataFrame(columns=["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id'])
-        Master.to_excel("c:/Cloud/Master.xlsx", index = False)
-    if os.path.exists("c:/Cloud/Master.xlsx"):
-        Master_sheet = pd.read_excel("c:/Cloud/Master.xlsx")
+
+    def window_check_make_Master(): #function for windows c drive cheking and make a master sheet
+        if not os.path.exists("{}".format(win_cloud_dir)):
+            os.makedirs("{}".format(win_cloud_dir))
+        if not os.path.exists("{}".format(win_master_file)):
+            Master = pd.DataFrame(columns=["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id'])
+            Master.to_excel("{}".format(win_master_file), index = False)
+        if os.path.exists("{}".format(win_master_file)):
+            Master_sheet = pd.read_excel("{}".format(win_master_file))
+        return Master_sheet
+    
+    
+    def mac_check_make_Master(): #function for mac and linux c drive cheking and make a master sheet
+        if not os.path.exists("{}".format(mac_cloud_dir)):
+            os.makedirs("{}".format(mac_cloud_dir))
+        if not os.path.exists("{}".format(mac_master_file)):
+            Master = pd.DataFrame(columns=["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id'])
+            Master.to_excel("{}".format(mac_master_file), index = False)
+        if os.path.exists("{}".format(mac_master_file)):
+            Master_sheet = pd.read_excel("{}".format(mac_master_file))
+        return Master_sheet
+    
+    
+    #according to our system function will be run
+     #if windows our system
+    if using_system == 'Windows':                        
+        Master_sheet = window_check_make_Master()
+     
+    #if Mac or linux our system    
+    if using_system == 'Darwin' or using_system == 'Linux':                         
+        Master_sheet = mac_check_make_Master()
+    
+
+
 
 
 
     #This Part for Reconciliation and it will check both Excel sheet if any new data than he will be update
-    if os.path.exists("Reports\{}.xlsx".format(Meeting_id)):
-       Inner_file = pd.read_excel("Reports\{}.xlsx".format(Meeting_id))
-       outer_file = pd.read_excel("{}.xlsx".format(Meeting_id)) 
+    if os.path.exists("{}".format(Inside_report_excel)):
+       Inner_file = pd.read_excel("{}".format(Inside_report_excel))
+       outer_file = pd.read_excel("{}".format(outside_excel)) 
     
        mail_id_column_name = []
        for column_name in outer_file.columns.tolist():
@@ -85,18 +135,18 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
               Reconcil_dataframe = Reconcil_dataframe.append(outer_file.iloc[out_Email_index,])
               Reconcil_count += 1
          
-       Reconcil_dataframe.to_excel("Reports/{}.xlsx".format(Meeting_id), index = False)
+       Reconcil_dataframe.to_excel("{}".format(Inside_report_excel), index = False)
     
     
     
     
-    if os.path.exists("Reports\{}.xlsx".format(Meeting_id)):
-        df4 = pd.read_excel("Reports\{}.xlsx".format(Meeting_id))
+    if os.path.exists("{}".format(Inside_report_excel)):
+        df4 = pd.read_excel("{}".format(Inside_report_excel))
         total_column = len(df4.columns.tolist())
         df4.dropna(thresh=total_column-8,inplace=True)
         df4_copy = df4.copy()
     else:
-        df4 = pd.read_excel("{}.xlsx".format(Meeting_id))
+        df4 = pd.read_excel("{}".format(outside_excel))
         total_column = len(df4.columns.tolist())
         df4.dropna(thresh=total_column-8,inplace=True)
         df4_copy = df4.copy()
@@ -731,7 +781,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         #this number will print on daywise file name
         daynumber = (int(file_number) - int(File_Total)) + (day_index+1)
         
-        daywise_result.to_csv("Reports\Day{}.csv".format(daynumber), index = False)
+        daywise_result.to_csv("Reports/Day{}.csv".format(daynumber), index = False)
     
     
     
@@ -958,7 +1008,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     Atleast_one_day = pd.concat(frame2)
     Atleast_one_day.reset_index(inplace = True, drop = True)
     
-    Atleast_one_day.to_csv("Reports\Atleast_one_day_present.csv", index = False)    
+    Atleast_one_day.to_csv("Reports/Atleast_one_day_present.csv", index = False)    
         
      
          
@@ -986,7 +1036,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     final = pd.concat(frame3)
     final.reset_index(inplace = True, drop = True)
     
-    final.to_csv("Reports\Full_data_present_everyday.csv", index = False)    
+    final.to_csv("Reports/Full_data_present_everyday.csv", index = False)    
         
         
         
@@ -1036,7 +1086,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
     
     #updated excel sheet
-    df4_copy.to_excel("Reports/{}.xlsx".format(Meeting_id), index = False)
+    df4_copy.to_excel("{}".format(Inside_report_excel), index = False)
                             
                            
     #Add the data in Master sheet (if we have new data)
@@ -1053,10 +1103,14 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                           'Zoom Name' : Matching_data["Zoom Name"][Matching_data_email_index],
                           'Zoom id' : Matching_data["Zoom id"][Matching_data_email_index]}
             Master_sheet = Master_sheet.append(dictionary, ignore_index=True)
-       
-    Master_sheet.to_excel("c:/Cloud/Master.xlsx", index = False)
     
-             
+    #if windows our system
+    if using_system == 'Windows':
+        Master_sheet.to_excel("{}".format(win_master_file), index = False)
+    
+    #if Mac or linux our system    
+    if using_system == 'Darwin' or using_system == 'Linux':
+        Master_sheet.to_excel("{}".format(mac_master_file), index = False)         
 
 
 
@@ -1087,543 +1141,541 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
     
     
+    if UI_run.upper() == 'Y' or UI_run.upper() == 'YES':
     
-    
-    
-     
-    import dash
-    import dash_core_components as dcc
-    import dash_html_components as html
-    from dash.dependencies import Input, State, Output
-    import pandas as pd
-    import plotly.graph_objects as go
-    import plotly.express as px
-    import dash_table as dt
-    import dash_table
-    import dash_bootstrap_components as dbc
-    import webbrowser
-    from threading import Timer
-    
-    
-    def open_browser():
-          webbrowser.open_new('http://127.0.0.1:8050/')
-      
+        import dash
+        import dash_core_components as dcc
+        import dash_html_components as html
+        from dash.dependencies import Input, State, Output
+        import pandas as pd
+        import plotly.graph_objects as go
+        import plotly.express as px
+        import dash_table as dt
+        import dash_table
+        import dash_bootstrap_components as dbc
+        import webbrowser
+        from threading import Timer
         
-    external_stylesheets = ['https://codepen.io/amyoshino/pen/jzXypZ.css']
-    
-    app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-    
-    
-    
-    markdown_text = '''
-    ## **Prime - 5** (Unsupervised Machine Learning Training)
-    #### Schedule **26 to 30 May** (5 days Training Timing 5:00Pm - 7:00Pm)
-    #### Traning Fee : INR - only **500 /-INR**
-    ######  Call or whatsapp. [+917851929944](/)
-    '''
-    
-    #Daylist for Dropdown
-    list1 = []
-    for d_index in range(File_Total):
-        day_number = (int(file_number) - int(File_Total)) + (d_index+1)
-        list1.append("Day{}".format(day_number))
-    
-    
-    
-    
-    
-    list2 = ["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id']
-    
-    
-    Suspence_day_list = ['Zoom Name', 'Email', 'Time', 'Registered Name', 'Gender','College Name', 'WhatsApp No.', 'Zoom id']
-    
-    
-    
-    #this for all Full datapresent (Who are present everyday)
-    Full_data_present = pd.read_csv("Reports/Full_data_present_everyday.csv")
-    Full_dat_index = Full_data_present[(Full_data_present["Name"].isnull())].index[0]
-    Full_data_present = Full_data_present.iloc[:Full_dat_index,]
-    
-    Full_data_list1 = ['Name','Gender','College Name','Email','WhatsApp No.']
-    Full_data_list2 = Full_data_present.columns.tolist()[6:-1]
-    Full_data_list = Full_data_list1 + Full_data_list2
-    
-    
-    fig1 = px.bar(Full_data_present, y ='Total',x = 'Zoom Name',
-                    text='Total',
-                    color='Total',
-                    hover_data=Full_data_list,
-                    height=450,
-                 )
-    
-    
-    
-    
-    
-    
-    #Not Any day present student Table
-    Not_Present_any_col_list = ['Name','Email','Gender','College Name','WhatsApp No.']
-    
-    Not_Present_any = final_work.copy()
-    Not_dat_index = Not_Present_any[(Not_Present_any["Name"].isnull())].index[0]
-    Not_Present_any = Not_Present_any.iloc[:Not_dat_index,]
-    Not_Present_any = Not_Present_any[Not_Present_any_col_list]
-    
-    
-    
-    
-    
-    
-    #Atleast One Day Present Students
-    Atleast_present_col_list = Atleast_one_day.columns.tolist()
-    
-    Atleast_one_day_copy = Atleast_one_day.copy()
-    Atleast_one_day_index = Atleast_one_day[(Atleast_one_day["Email"].isnull())].index[0]
-    Atleast_one_day_copy = Atleast_one_day_copy.iloc[ : Atleast_one_day_index,]
-    
-    
-    
-    
-    
-    #Suspence Data Table of All Day
-    Atleast_present_col_list = Atleast_one_day.columns.tolist()
-    All_suspence_data = Atleast_one_day.copy()
-    All_suspence_data = All_suspence_data.iloc[Atleast_one_day_index+2 : ,]
-    
-    
-    
-    
-    
-    
-    colors = {
-        'background': '#111111',
-        'text': '#7FDBFF',
-        'color1': 'white',
-        'color2': 'blue'
-    }
-    
         
-    app.layout = html.Div( children=[
+        def open_browser():
+              webbrowser.open_new('http://127.0.0.1:8050/')
+          
             
-        html.H1(
-            children='Forsk Coding School',
-            style={
-                'textAlign': 'center',
-                'color': colors['color1'],
-                'backgroundColor': colors['color2'],
-                'borderRadius': '5px',
-                'margin': '20px',
-                'padding': '10px',
-                'borderStyle': 'dashed',
-                'margin-bottom':'0px',
-                'font-size': '40px',
-                'margin-top':'10px'
-                
-            }
-        ),
-        html.H3(
-            children='-- Student Attendence Analysis --',
-            style={
-                'textAlign': 'center',
-                'color': colors['color1'],
-                'backgroundColor': colors['color2'],
-                'borderRadius': '5px',
-                'margin': 'auto',
-                'margin-right':'20px',
-                'margin-left':'20px',
-                'font-size': '18px',
-                'padding': '10px',
-            }
-        ),
+        external_stylesheets = ['https://codepen.io/amyoshino/pen/jzXypZ.css']
         
-        #Markdown (details of Prime)
-        html.Div([dcc.Markdown(children=markdown_text)],
-                  style={
-                'textAlign': 'center',
-            }
-        ),
+        app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
         
         
-        #dropdown (Days)
-        html.Div([dcc.Dropdown(id='dd',
-            options=[{'label': c , 'value': c} for c in list1],
-            value='Day1')],
-        style={
-                'width':'40%',
-                'padding':40
-            }
-        ),
+        
+        markdown_text = '''
+        ## **Prime - 5** (Unsupervised Machine Learning Training)
+        #### Schedule **26 to 30 May** (5 days Training Timing 5:00Pm - 7:00Pm)
+        #### Traning Fee : INR - only **500 /-INR**
+        ######  Call or whatsapp. [+917851929944](/)
+        '''
+        
+        #Daylist for Dropdown
+        list1 = []
+        for d_index in range(File_Total):
+            day_number = (int(file_number) - int(File_Total)) + (d_index+1)
+            list1.append("Day{}".format(day_number))
         
         
         
         
-        #Present Registered student
-        html.H3(
-            children='Registered & Present Student',
-            style={
-                'textAlign': 'center',
-                'color': colors['color2'],
-                'margin': 'auto',
-                'font-size': '25px',
-                'margin-bottom':'0px',
-                'font': '20px Arial, sans-serif',
-                
-            }
-        ),
-        #graph1
-        dcc.Graph(id = 'graph'),
+        
+        list2 = ["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id']
+        
+        
+        Suspence_day_list = ['Zoom Name', 'Email', 'Time', 'Registered Name', 'Gender','College Name', 'WhatsApp No.', 'Zoom id']
         
         
         
+        #this for all Full datapresent (Who are present everyday)
+        Full_data_present = pd.read_csv("Reports/Full_data_present_everyday.csv")
+        Full_dat_index = Full_data_present[(Full_data_present["Name"].isnull())].index[0]
+        Full_data_present = Full_data_present.iloc[:Full_dat_index,]
         
-        #Absent Students
-        html.H3(
-            children='Absent Students Table',
-            style={
-                'textAlign': 'center',
-                'color': colors['color2'],
-                'margin': 'auto',
-                'font-size': '25px',
-                'margin-bottom':'10px',
-                'margin-top':'70px',
-                'font': '20px Arial, sans-serif',
-            }
-        ),
+        Full_data_list1 = ['Name','Gender','College Name','Email','WhatsApp No.']
+        Full_data_list2 = Full_data_present.columns.tolist()[6:-1]
+        Full_data_list = Full_data_list1 + Full_data_list2
         
         
-        
-        #Absent student Table
-        dbc.Container(
-        html.Div(
-                [
-                        
-                    dash_table.DataTable(
-                    id='datatable-paging',
-                    columns=[
-                        {"name": i, "id": i} for i in list2],
-                   css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
-                   style_cell={'whiteSpace': 'normal',
-                               'height': 'auto',
-                               'textAlign': 'left',
-                               'overflow': 'hidden',
-                               'textOverflow': 'ellipsis',
-                               'maxWidth': 0,}, 
-                   style_data={ 'border': '1px solid blue' ,
-                               'margin-left':'20px',
-                               'margin-right':'20px'},
-                    style_header={
-                      'backgroundColor': 'rgb(230, 230, 230)',
-                      'fontWeight': 'bold'
-                },
-                  
-                    ),
-                    
-                    
-                ], className = 'row'
-            ),className="p-5",
-        ),
-                            
-                            
-                            
-                            
-        #Suspence Students
-        html.H3(
-            children='Suspence Students(Daywise)',
-            style={
-                'textAlign': 'center',
-                'color': colors['color2'],
-                'margin': 'auto',
-                'font-size': '25px',
-                'margin-bottom':'10px',
-                'margin-top':'70px',
-                'font': '20px Arial, sans-serif',
-            }
-        ),
-        
-        #Suspence Data Table
-        dbc.Container(
-        html.Div(
-                [
-                        
-                    dash_table.DataTable(
-                    id='suspence_daywise',
-                    columns=[
-                        {"name": i, "id": i} for i in Suspence_day_list],
-                   css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
-                   style_cell={'whiteSpace': 'normal',
-                               'height': 'auto',
-                               'textAlign': 'left',
-                               'overflow': 'hidden',
-                               'textOverflow': 'ellipsis',
-                               'maxWidth': 0,}, 
-                   style_data={ 'border': '1px solid blue' ,
-                               'margin-left':'20px',
-                               'margin-right':'20px'},
-                    style_header={
-                      'backgroundColor': 'rgb(230, 230, 230)',
-                      'fontWeight': 'bold'
-                },
-                  
-                    ),
-                    
-                    
-                ], className = 'row'
-            ),className="p-5",
-        ),
+        fig1 = px.bar(Full_data_present, y ='Total',x = 'Zoom Name',
+                        text='Total',
+                        color='Total',
+                        hover_data=Full_data_list,
+                        height=450,
+                     )
         
         
         
         
         
         
-        #Present Everyday
-        html.H3(
-            children='All Day Present Students',
-            style={
-                'textAlign': 'center',
-                'color': colors['color2'],
-                'margin': 'auto',
-                'font-size': '25px',
-                'margin-bottom':'0px',
-                'margin-top':'70px',
-                'font': '20px Arial, sans-serif',
-            }
-        ),
+        #Not Any day present student Table
+        Not_Present_any_col_list = ['Name','Email','Gender','College Name','WhatsApp No.']
         
-         #graph4           
-        dcc.Graph(figure=fig1),
+        Not_Present_any = final_work.copy()
+        Not_dat_index = Not_Present_any[(Not_Present_any["Name"].isnull())].index[0]
+        Not_Present_any = Not_Present_any.iloc[:Not_dat_index,]
+        Not_Present_any = Not_Present_any[Not_Present_any_col_list]
         
         
         
         
-        #Not present any day student Table
-        html.H3(
-            children='Not Present Any Day Students Table',
-            style={
-                'textAlign': 'center',
-                'color': colors['color2'],
-                'margin': 'auto',
-                'font-size': '25px',
-                'margin-bottom':'10px',
-                'margin-top':'70px',
-                'font': '20px Arial, sans-serif',
-            }
-        ),
-             dbc.Container(
-             html.Div(
-                [
-                        
-                    dash_table.DataTable(
-                    data=Not_Present_any.to_dict('records'),
-                    columns=[
-                        {"name": i, "id": i} for i in Not_Present_any_col_list], 
-                   css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
-                   style_cell={'textAlign': 'left'}, 
-                   style_data={ 'border': '1px solid blue' ,
-                               'margin-left':'20px',
-                               'margin-right':'20px'},
-                    style_header={
-                      'backgroundColor': 'rgb(230, 230, 230)',
-                      'fontWeight': 'bold'
-                },
-                  
-                    ),
-                    
-                    
-                ], className = 'row'
-            ),className="p-5",
-        ),
-           
-    
-    
-    
-    
-    
-    
-                     
-        #Atleast One Day Present Table
-        html.H3(
-            children='Atleast One Day Present Students Table',
-            style={
-                'textAlign': 'center',
-                'color': colors['color2'],
-                'margin': 'auto',
-                'font-size': '25px',
-                'margin-bottom':'10px',
-                'margin-top':'70px',
-                'font': '20px Arial, sans-serif',
-            }
-        ),
-             dbc.Container(
-             html.Div(
-                [
-                        
-                    dash_table.DataTable(
-                    data=Atleast_one_day_copy.to_dict('records'),
-                    columns=[
-                        {"name": i, "id": i} for i in Atleast_present_col_list], 
-                   css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
-                   style_cell={'textAlign': 'left'}, 
-                   style_data={ 'border': '1px solid blue' ,
-                               'margin-left':'20px',
-                               'margin-right':'20px',
-                               'whiteSpace': 'normal',
-                                'height': 'auto',
-                                'lineHeight': '15px'},
-                    style_cell_conditional=[
-                                {'if': {'column_id': 'College Name'},
-                                      'width': '15%'},
-                                {'if': {'column_id': 'Email'},
-                                       'width': '18%'},
-                                {'if': {'column_id': 'WhatsApp No.'},
-                                       'width': '8%'},
-                    ],
-                    style_header={
-                      'backgroundColor': 'rgb(230, 230, 230)',
-                      'fontWeight': 'bold'
-                },
-                  
-                    ),
-                    
-                    
-                ], className = 'row'
-            ),className="p-10",
-        ),                    
-            
-      
+        
+        
+        #Atleast One Day Present Students
+        Atleast_present_col_list = Atleast_one_day.columns.tolist()
+        
+        Atleast_one_day_copy = Atleast_one_day.copy()
+        Atleast_one_day_index = Atleast_one_day[(Atleast_one_day["Email"].isnull())].index[0]
+        Atleast_one_day_copy = Atleast_one_day_copy.iloc[ : Atleast_one_day_index,]
+        
+        
         
         
         
         #Suspence Data Table of All Day
-        html.H3(
-            children='All Suspence Data Table',
-            style={
-                'textAlign': 'center',
-                'color': colors['color2'],
-                'margin': 'auto',
-                'font-size': '25px',
-                'margin-bottom':'10px',
-                'margin-top':'70px',
-                'font': '20px Arial, sans-serif',
-            }
-        ),
-             dbc.Container(
-             html.Div(
-                [
-                        
-                    dash_table.DataTable(
-                    data=All_suspence_data.to_dict('records'),
-                    columns=[
-                        {"name": i, "id": i} for i in Atleast_present_col_list], 
-                   css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
-                   style_cell={'textAlign': 'left'}, 
-                   style_data={ 'border': '1px solid blue' ,
-                               'margin-left':'20px',
-                               'margin-right':'20px',
-                               'whiteSpace': 'normal',
-                                'height': 'auto',
-                                'lineHeight': '15px'},
-                    style_cell_conditional=[
-                                {'if': {'column_id': 'Email'},
-                                       'width': '18%'},
-                    ],
-                    style_header={
-                      'backgroundColor': 'rgb(230, 230, 230)',
-                      'fontWeight': 'bold'
-                },
-                  
-                    ),
-                    
-                    
-                ], className = 'row'
-            ),className="p-5",
-        ),
-       
-                  
-                    
-                            
-    ])
-    
-    
-    
-    
-    
-    #calling for Registered and present students
-    @app.callback(dash.dependencies.Output('graph','figure'),[dash.dependencies.Input('dd','value')])
-    
-    def update_fig(value):
-        try:
+        Atleast_present_col_list = Atleast_one_day.columns.tolist()
+        All_suspence_data = Atleast_one_day.copy()
+        All_suspence_data = All_suspence_data.iloc[Atleast_one_day_index+2 : ,]
         
-            dff = pd.read_csv("Reports/{}.csv".format(value))
-            a = dff[(dff["Email"].isnull())].index[0]
-            dff = dff.iloc[:a,]
-            figure = px.bar(dff, y ='Time',x = 'Zoom Name',
-                            text='Time',
-                            color='Time',
-                            hover_data=['Registered Name','Gender','College Name','Email'],
-                            height=650,
-                            )
-            figure.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-            figure.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
-    
-        except:
-            return html.Div(['There was an error processing this file.'])
+        
+        
+        
+        
+        
+        colors = {
+            'background': '#111111',
+            'text': '#7FDBFF',
+            'color1': 'white',
+            'color2': 'blue'
+        }
+        
             
-        return figure
-    
-    
-    
-    
-    #Daywise student present Student Table
-    @app.callback(dash.dependencies.Output('datatable-paging','data'),[dash.dependencies.Input('dd','value')])
-    
-    def update_fig(value):
-        try:
-            dff = pd.read_csv("Reports/{}.csv".format(value))
-            b = dff[(dff["Email"].isnull())].index[1]
-            dff = dff.iloc[b+2:,]
-            dff_list = []
-            for dff_index in dff["Email"].tolist():
-                dff_row = df4_copy[df4_copy[df4_column_list[1]] == dff_index]
-                dff_list.append(dff_row)
-            dff = pd.concat(dff_list)
-            dff = dff[df4_column_list + ['Zoom Name','Zoom id']]
-            dff.columns = ["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id']
-            data=dff.to_dict('records')
-            return data
-                  
-    
-        except:
-            return html.Div(['There was an error processing this file.'])
-    
-    
-    
-    
-    #Daywise Suspense Data Table
-    @app.callback(dash.dependencies.Output('suspence_daywise','data'),[dash.dependencies.Input('dd','value')])
-    
-    def update_fig(value):
-        try:
-            dff = pd.read_csv("Reports/{}.csv".format(value))
-            a = dff[(dff["Email"].isnull())].index[0]
-            b = dff[(dff["Email"].isnull())].index[1]
-            dff = dff.iloc[a+2:b,]
-            data=dff.to_dict('records')
-            return data
-                  
-    
-        except:
-            return html.Div(['There was an error processing this file.'])
+        app.layout = html.Div( children=[
+                
+            html.H1(
+                children='Forsk Coding School',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color1'],
+                    'backgroundColor': colors['color2'],
+                    'borderRadius': '5px',
+                    'margin': '20px',
+                    'padding': '10px',
+                    'borderStyle': 'dashed',
+                    'margin-bottom':'0px',
+                    'font-size': '40px',
+                    'margin-top':'10px'
+                    
+                }
+            ),
+            html.H3(
+                children='-- Student Attendence Analysis --',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color1'],
+                    'backgroundColor': colors['color2'],
+                    'borderRadius': '5px',
+                    'margin': 'auto',
+                    'margin-right':'20px',
+                    'margin-left':'20px',
+                    'font-size': '18px',
+                    'padding': '10px',
+                }
+            ),
+            
+            #Markdown (details of Prime)
+            html.Div([dcc.Markdown(children=markdown_text)],
+                      style={
+                    'textAlign': 'center',
+                }
+            ),
+            
+            
+            #dropdown (Days)
+            html.Div([dcc.Dropdown(id='dd',
+                options=[{'label': c , 'value': c} for c in list1],
+                value='Day1')],
+            style={
+                    'width':'40%',
+                    'padding':40
+                }
+            ),
+            
+            
+            
+            
+            #Present Registered student
+            html.H3(
+                children='Registered & Present Student',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color2'],
+                    'margin': 'auto',
+                    'font-size': '25px',
+                    'margin-bottom':'0px',
+                    'font': '20px Arial, sans-serif',
+                    
+                }
+            ),
+            #graph1
+            dcc.Graph(id = 'graph'),
+            
+            
+            
+            
+            #Absent Students
+            html.H3(
+                children='Absent Students Table',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color2'],
+                    'margin': 'auto',
+                    'font-size': '25px',
+                    'margin-bottom':'10px',
+                    'margin-top':'70px',
+                    'font': '20px Arial, sans-serif',
+                }
+            ),
+            
+            
+            
+            #Absent student Table
+            dbc.Container(
+            html.Div(
+                    [
+                            
+                        dash_table.DataTable(
+                        id='datatable-paging',
+                        columns=[
+                            {"name": i, "id": i} for i in list2],
+                       css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
+                       style_cell={'whiteSpace': 'normal',
+                                   'height': 'auto',
+                                   'textAlign': 'left',
+                                   'overflow': 'hidden',
+                                   'textOverflow': 'ellipsis',
+                                   'maxWidth': 0,}, 
+                       style_data={ 'border': '1px solid blue' ,
+                                   'margin-left':'20px',
+                                   'margin-right':'20px'},
+                        style_header={
+                          'backgroundColor': 'rgb(230, 230, 230)',
+                          'fontWeight': 'bold'
+                    },
+                      
+                        ),
+                        
+                        
+                    ], className = 'row'
+                ),className="p-5",
+            ),
+                                
+                                
+                                
+                                
+            #Suspence Students
+            html.H3(
+                children='Suspence Students(Daywise)',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color2'],
+                    'margin': 'auto',
+                    'font-size': '25px',
+                    'margin-bottom':'10px',
+                    'margin-top':'70px',
+                    'font': '20px Arial, sans-serif',
+                }
+            ),
+            
+            #Suspence Data Table
+            dbc.Container(
+            html.Div(
+                    [
+                            
+                        dash_table.DataTable(
+                        id='suspence_daywise',
+                        columns=[
+                            {"name": i, "id": i} for i in Suspence_day_list],
+                       css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
+                       style_cell={'whiteSpace': 'normal',
+                                   'height': 'auto',
+                                   'textAlign': 'left',
+                                   'overflow': 'hidden',
+                                   'textOverflow': 'ellipsis',
+                                   'maxWidth': 0,}, 
+                       style_data={ 'border': '1px solid blue' ,
+                                   'margin-left':'20px',
+                                   'margin-right':'20px'},
+                        style_header={
+                          'backgroundColor': 'rgb(230, 230, 230)',
+                          'fontWeight': 'bold'
+                    },
+                      
+                        ),
+                        
+                        
+                    ], className = 'row'
+                ),className="p-5",
+            ),
+            
+            
+            
+            
+            
+            
+            #Present Everyday
+            html.H3(
+                children='All Day Present Students',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color2'],
+                    'margin': 'auto',
+                    'font-size': '25px',
+                    'margin-bottom':'0px',
+                    'margin-top':'70px',
+                    'font': '20px Arial, sans-serif',
+                }
+            ),
+            
+             #graph4           
+            dcc.Graph(figure=fig1),
+            
+            
+            
+            
+            #Not present any day student Table
+            html.H3(
+                children='Not Present Any Day Students Table',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color2'],
+                    'margin': 'auto',
+                    'font-size': '25px',
+                    'margin-bottom':'10px',
+                    'margin-top':'70px',
+                    'font': '20px Arial, sans-serif',
+                }
+            ),
+                 dbc.Container(
+                 html.Div(
+                    [
+                            
+                        dash_table.DataTable(
+                        data=Not_Present_any.to_dict('records'),
+                        columns=[
+                            {"name": i, "id": i} for i in Not_Present_any_col_list], 
+                       css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
+                       style_cell={'textAlign': 'left'}, 
+                       style_data={ 'border': '1px solid blue' ,
+                                   'margin-left':'20px',
+                                   'margin-right':'20px'},
+                        style_header={
+                          'backgroundColor': 'rgb(230, 230, 230)',
+                          'fontWeight': 'bold'
+                    },
+                      
+                        ),
+                        
+                        
+                    ], className = 'row'
+                ),className="p-5",
+            ),
+               
         
         
         
         
         
         
-    
-    if __name__ == '__main__':
-        Timer(1, open_browser).start();
-        app.run_server()
+                         
+            #Atleast One Day Present Table
+            html.H3(
+                children='Atleast One Day Present Students Table',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color2'],
+                    'margin': 'auto',
+                    'font-size': '25px',
+                    'margin-bottom':'10px',
+                    'margin-top':'70px',
+                    'font': '20px Arial, sans-serif',
+                }
+            ),
+                 dbc.Container(
+                 html.Div(
+                    [
+                            
+                        dash_table.DataTable(
+                        data=Atleast_one_day_copy.to_dict('records'),
+                        columns=[
+                            {"name": i, "id": i} for i in Atleast_present_col_list], 
+                       css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
+                       style_cell={'textAlign': 'left'}, 
+                       style_data={ 'border': '1px solid blue' ,
+                                   'margin-left':'20px',
+                                   'margin-right':'20px',
+                                   'whiteSpace': 'normal',
+                                    'height': 'auto',
+                                    'lineHeight': '15px'},
+                        style_cell_conditional=[
+                                    {'if': {'column_id': 'College Name'},
+                                          'width': '15%'},
+                                    {'if': {'column_id': 'Email'},
+                                           'width': '18%'},
+                                    {'if': {'column_id': 'WhatsApp No.'},
+                                           'width': '8%'},
+                        ],
+                        style_header={
+                          'backgroundColor': 'rgb(230, 230, 230)',
+                          'fontWeight': 'bold'
+                    },
+                      
+                        ),
+                        
+                        
+                    ], className = 'row'
+                ),className="p-10",
+            ),                    
+                
+          
+            
+            
+            
+            #Suspence Data Table of All Day
+            html.H3(
+                children='All Suspence Data Table',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color2'],
+                    'margin': 'auto',
+                    'font-size': '25px',
+                    'margin-bottom':'10px',
+                    'margin-top':'70px',
+                    'font': '20px Arial, sans-serif',
+                }
+            ),
+                 dbc.Container(
+                 html.Div(
+                    [
+                            
+                        dash_table.DataTable(
+                        data=All_suspence_data.to_dict('records'),
+                        columns=[
+                            {"name": i, "id": i} for i in Atleast_present_col_list], 
+                       css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
+                       style_cell={'textAlign': 'left'}, 
+                       style_data={ 'border': '1px solid blue' ,
+                                   'margin-left':'20px',
+                                   'margin-right':'20px',
+                                   'whiteSpace': 'normal',
+                                    'height': 'auto',
+                                    'lineHeight': '15px'},
+                        style_cell_conditional=[
+                                    {'if': {'column_id': 'Email'},
+                                           'width': '18%'},
+                        ],
+                        style_header={
+                          'backgroundColor': 'rgb(230, 230, 230)',
+                          'fontWeight': 'bold'
+                    },
+                      
+                        ),
+                        
+                        
+                    ], className = 'row'
+                ),className="p-5",
+            ),
+           
+                      
+                        
+                                
+        ])
+        
+        
+        
+        
+        
+        #calling for Registered and present students
+        @app.callback(dash.dependencies.Output('graph','figure'),[dash.dependencies.Input('dd','value')])
+        
+        def update_fig(value):
+            try:
+            
+                dff = pd.read_csv("Reports/{}.csv".format(value))
+                a = dff[(dff["Email"].isnull())].index[0]
+                dff = dff.iloc[:a,]
+                figure = px.bar(dff, y ='Time',x = 'Zoom Name',
+                                text='Time',
+                                color='Time',
+                                hover_data=['Registered Name','Gender','College Name','Email'],
+                                height=650,
+                                )
+                figure.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+                figure.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
+        
+            except:
+                return html.Div(['There was an error processing this file.'])
+                
+            return figure
+        
+        
+        
+        
+        #Daywise student present Student Table
+        @app.callback(dash.dependencies.Output('datatable-paging','data'),[dash.dependencies.Input('dd','value')])
+        
+        def update_fig(value):
+            try:
+                dff = pd.read_csv("Reports/{}.csv".format(value))
+                b = dff[(dff["Email"].isnull())].index[1]
+                dff = dff.iloc[b+2:,]
+                dff_list = []
+                for dff_index in dff["Email"].tolist():
+                    dff_row = df4_copy[df4_copy[df4_column_list[1]] == dff_index]
+                    dff_list.append(dff_row)
+                dff = pd.concat(dff_list)
+                dff = dff[df4_column_list + ['Zoom Name','Zoom id']]
+                dff.columns = ["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id']
+                data=dff.to_dict('records')
+                return data
+                      
+        
+            except:
+                return html.Div(['There was an error processing this file.'])
+        
+        
+        
+        
+        #Daywise Suspense Data Table
+        @app.callback(dash.dependencies.Output('suspence_daywise','data'),[dash.dependencies.Input('dd','value')])
+        
+        def update_fig(value):
+            try:
+                dff = pd.read_csv("Reports/{}.csv".format(value))
+                a = dff[(dff["Email"].isnull())].index[0]
+                b = dff[(dff["Email"].isnull())].index[1]
+                dff = dff.iloc[a+2:b,]
+                data=dff.to_dict('records')
+                return data
+                      
+        
+            except:
+                return html.Div(['There was an error processing this file.'])
+            
+            
+            
+            
+            
+            
+        
+        if __name__ == '__main__':
+            Timer(1, open_browser).start();
+            app.run_server()
 
 
 
