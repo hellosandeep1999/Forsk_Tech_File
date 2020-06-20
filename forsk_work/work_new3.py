@@ -5,6 +5,8 @@ Created on Sun Jun  7 13:27:28 2020
 @author: user
 """
 
+
+
 import pandas as pd
 import numpy as np
 import os 
@@ -12,10 +14,11 @@ import glob
 import platform
 
 
+
 Meeting_id = int(input("Please Enter your Meeting Id: "))
 
 #you want to UI or not
-UI_run = input("Are you want to See UI: ")
+UI_run = input("Do you want to See UI: ")
 
 #whats your system I want to know by platform.system()
 using_system = platform.system() 
@@ -26,12 +29,15 @@ using_system = platform.system()
 win_cloud_dir = "c:/Users/Cloud"                 #for windows
 win_master_file = "c:/Users/Cloud/Master.xlsx"   #for windows
 
-mac_cloud_dir = "/Users/Cloud"                  #for mac
-mac_master_file = "/Users/Cloud/Master.xlsx"    #for mac
+mac_cloud_dir = "/Users/sylvester/Cloud"                  #for mac
+mac_master_file = "/Users/sylvester/Cloud/Master.xlsx"    #for mac
 
 
 Inside_report_excel = "Reports/{}.xlsx".format(Meeting_id)  #This is for Excel sheet which is inside in Report folder
 outside_excel = "{}.xlsx".format(Meeting_id)                #outside excel sheet
+
+#pandas gives a lot of errors
+pd.options.mode.chained_assignment = None
 
 
 
@@ -74,10 +80,14 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         if not os.path.exists("{}".format(win_cloud_dir)):
             os.makedirs("{}".format(win_cloud_dir))
         if not os.path.exists("{}".format(win_master_file)):
-            Master = pd.DataFrame(columns=["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id'])
+            Master = pd.DataFrame(columns=["Timestamp","UTR No ( PhonePe)","Title","Registered Name",
+                                           "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
+                                           'Whatsapp No ',"Branch/ Department","Current Semester","College City",
+                                           'Status','Mode','Payee Name/New ID','Calling Responses',
+                                           'Zoom Name','Matched', 'Zoom id'])
             Master.to_excel("{}".format(win_master_file), index = False)
-        if os.path.exists("{}".format(win_master_file)):
-            Master_sheet = pd.read_excel("{}".format(win_master_file))
+        if os.path.exists(r"{}".format(win_master_file)):
+            Master_sheet = pd.read_excel(r"{}".format(win_master_file))
         return Master_sheet
     
     
@@ -85,7 +95,11 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         if not os.path.exists("{}".format(mac_cloud_dir)):
             os.makedirs("{}".format(mac_cloud_dir))
         if not os.path.exists("{}".format(mac_master_file)):
-            Master = pd.DataFrame(columns=["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id'])
+            Master = pd.DataFrame(columns=["Timestamp","UTR No ( PhonePe)","Title","Registered Name",
+                                           "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
+                                           'Whatsapp No ',"Branch/ Department","Current Semester","College City",
+                                           'Status','Mode','Payee Name/New ID','Calling Responses',
+                                           'Zoom Name','Matched', 'Zoom id'])
             Master.to_excel("{}".format(mac_master_file), index = False)
         if os.path.exists("{}".format(mac_master_file)):
             Master_sheet = pd.read_excel("{}".format(mac_master_file))
@@ -1086,7 +1100,8 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
     
     #updated excel sheet
-    df4_copy.to_excel("{}".format(Inside_report_excel), index = False)
+    if not os.path.exists("{}".format(Inside_report_excel)):
+        df4_copy.to_excel("{}".format(Inside_report_excel), index = False)
                             
                            
     #Add the data in Master sheet (if we have new data)
@@ -1095,18 +1110,49 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     Matching_data_email_list = Matching_data[df4_column_list[1]].values.tolist()
     for Matching_data_email_index,Matching_data_email in enumerate(Matching_data_email_list):
         if str(Matching_data_email) not in Master_sheet["Email ID"].values.tolist():
-            dictionary = {'Registered Name' : Matching_data[df4_column_list[0]][Matching_data_email_index],
-                          'Email ID' : Matching_data[df4_column_list[1]][Matching_data_email_index],
-                          'Your Gender' : Matching_data[df4_column_list[2]][Matching_data_email_index],
-                          'College Name' : Matching_data[df4_column_list[3]][Matching_data_email_index],
-                          'Whatsapp No ' : Matching_data[df4_column_list[4]][Matching_data_email_index],
-                          'Zoom Name' : Matching_data["Zoom Name"][Matching_data_email_index],
-                          'Zoom id' : Matching_data["Zoom id"][Matching_data_email_index]}
+            
+            Master_columns_list = []
+            def make_Master_columns_list(column_n):
+                for column_name1 in df4_copy.columns.tolist():
+                    if column_n in column_name1.upper():
+                        Master_columns_list.append(Matching_data[column_name1][Matching_data_email_index])
+                        break
+                else:
+                    Master_columns_list.append(np.nan)
+            
+            check_list_ = ["TIMESTAMP","UTR","TITLE","NAME","DESIGNATION",'MAIL','MOBILE','GENDER','COLLEGE',
+                          "WHATSAPP","DEPARTMENT","SEM","CITY","STATUS",'MODE','PAYEE','CALLING',
+                          'ZOOM ID','MATCHED','ZOOM NAME']
+            for check_list_name in check_list_:
+                make_Master_columns_list(check_list_name)
+                
+            
+            dictionary = {'Timestamp' : Master_columns_list[0],
+                          'UTR No ( PhonePe)' : Master_columns_list[1],
+                          'Title' : Master_columns_list[2],
+                          'Registered Name' : Master_columns_list[3],
+                          'Designation' : Master_columns_list[4],
+                          'Email ID' : Master_columns_list[5],
+                          'Mobile No.' : Master_columns_list[6],
+                          'Your Gender' : Master_columns_list[7],
+                          'College Name' : Master_columns_list[8],
+                          'Whatsapp No ' : Master_columns_list[9],
+                          'Branch/ Department' : Master_columns_list[10],
+                          'Current Semester' : Master_columns_list[11],
+                          'College City' : Master_columns_list[12],
+                          'Status' : Master_columns_list[13],
+                          'Mode' : Master_columns_list[14],
+                          'Payee Name/New ID' : Master_columns_list[15],
+                          'Calling Responses' : Master_columns_list[16],
+                          'Zoom Name' : Master_columns_list[17],
+                          'Matched' : Master_columns_list[18],
+                          'Zoom id' : Master_columns_list[19]
+                          }
             Master_sheet = Master_sheet.append(dictionary, ignore_index=True)
     
     #if windows our system
     if using_system == 'Windows':
-        Master_sheet.to_excel("{}".format(win_master_file), index = False)
+        Master_sheet.to_excel(r"{}".format(win_master_file), index = False)
     
     #if Mac or linux our system    
     if using_system == 'Darwin' or using_system == 'Linux':
