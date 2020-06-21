@@ -27,13 +27,13 @@ using_system = platform.system()
 
 #some address which we will define here and use in whole program
 win_cloud_dir = "c:/Users/Cloud"                 #for windows
-win_master_file = "c:/Users/Cloud/Master.xlsx"   #for windows
+win_master_file = "c:/Users/Cloud/Master.csv"   #for windows
 
 mac_cloud_dir = "/Users/sylvester/Cloud"                  #for mac
-mac_master_file = "/Users/sylvester/Cloud/Master.xlsx"    #for mac
+mac_master_file = "/Users/sylvester/Cloud/Master.csv"    #for mac
 
 
-Inside_report_excel = "Reports/{}.xlsx".format(Meeting_id)  #This is for Excel sheet which is inside in Report folder
+Inside_report_excel = "Reports/{}.csv".format(Meeting_id)  #This is for Excel sheet which is inside in Report folder
 outside_excel = "{}.xlsx".format(Meeting_id)                #outside excel sheet
 
 #pandas gives a lot of errors
@@ -85,9 +85,9 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                                            'Whatsapp No ',"Branch/ Department","Current Semester","College City",
                                            'Status','Mode','Payee Name/New ID','Calling Responses',
                                            'Zoom Name','Matched', 'Zoom id'])
-            Master.to_excel("{}".format(win_master_file), index = False)
+            Master.to_csv("{}".format(win_master_file), index = False)
         if os.path.exists(r"{}".format(win_master_file)):
-            Master_sheet = pd.read_excel(r"{}".format(win_master_file))
+            Master_sheet = pd.read_csv(r"{}".format(win_master_file))
         return Master_sheet
     
     
@@ -100,9 +100,9 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                                            'Whatsapp No ',"Branch/ Department","Current Semester","College City",
                                            'Status','Mode','Payee Name/New ID','Calling Responses',
                                            'Zoom Name','Matched', 'Zoom id'])
-            Master.to_excel("{}".format(mac_master_file), index = False)
+            Master.to_csv("{}".format(mac_master_file), index = False)
         if os.path.exists("{}".format(mac_master_file)):
-            Master_sheet = pd.read_excel("{}".format(mac_master_file))
+            Master_sheet = pd.read_csv("{}".format(mac_master_file))
         return Master_sheet
     
     
@@ -122,7 +122,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
 
     #This Part for Reconciliation and it will check both Excel sheet if any new data than he will be update
     if os.path.exists("{}".format(Inside_report_excel)):
-       Inner_file = pd.read_excel("{}".format(Inside_report_excel))
+       Inner_file = pd.read_csv("{}".format(Inside_report_excel))
        outer_file = pd.read_excel("{}".format(outside_excel)) 
     
        mail_id_column_name = []
@@ -149,13 +149,13 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
               Reconcil_dataframe = Reconcil_dataframe.append(outer_file.iloc[out_Email_index,])
               Reconcil_count += 1
          
-       Reconcil_dataframe.to_excel("{}".format(Inside_report_excel), index = False)
+       Reconcil_dataframe.to_csv("{}".format(Inside_report_excel), index = False)
     
     
     
     
     if os.path.exists("{}".format(Inside_report_excel)):
-        df4 = pd.read_excel("{}".format(Inside_report_excel))
+        df4 = pd.read_csv("{}".format(Inside_report_excel))
         total_column = len(df4.columns.tolist())
         df4.dropna(thresh=total_column-8,inplace=True)
         df4_copy = df4.copy()
@@ -1101,9 +1101,11 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
     #updated excel sheet
     if not os.path.exists("{}".format(Inside_report_excel)):
-        df4_copy.to_excel("{}".format(Inside_report_excel), index = False)
+        df4_copy.to_csv("{}".format(Inside_report_excel), index = False)
                             
-                           
+      
+
+    #Master sheet                  
     #Add the data in Master sheet (if we have new data)
     Matching_data = df4_copy[df4_copy["Matched"] == True]
     Matching_data.reset_index(inplace = True, drop = True)
@@ -1152,11 +1154,11 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
     #if windows our system
     if using_system == 'Windows':
-        Master_sheet.to_excel(r"{}".format(win_master_file), index = False)
+        Master_sheet.to_csv(r"{}".format(win_master_file), index = False)
     
     #if Mac or linux our system    
     if using_system == 'Darwin' or using_system == 'Linux':
-        Master_sheet.to_excel("{}".format(mac_master_file), index = False)         
+        Master_sheet.to_csv("{}".format(mac_master_file), index = False)         
 
 
 
