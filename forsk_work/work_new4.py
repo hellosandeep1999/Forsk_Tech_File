@@ -9,26 +9,40 @@ Created on Sun Jun  7 13:27:28 2020
 
 import pandas as pd
 import numpy as np
+import numpy
 import os 
 import glob
 import platform
 import logging
+import gspread
+from google.oauth2.service_account import Credentials
+
+
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets', "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+credentials = Credentials.from_service_account_file('Creds.json', scopes=SCOPES)
+client = gspread.authorize(credentials)
+
+
 
 LOG_FILENAME = 'example.log'
 logging.basicConfig(filename=LOG_FILENAME, filemode='w', format='%(asctime)s - %(name)s - %(lineno)d - %(message)s',level=logging.DEBUG)
 
-logging.warning('Starts from here')
-
 
 Meeting_id = int(input("Please Enter your Meeting Id: "))
-logging.warning('%d Metting id',Meeting_id)
 
 #you want to UI or not
 UI_run = input("Do you want to See UI: ")
 
+print('Please wait we are reading master sheet...')
+sheet = client.open("Master").sheet1
+
 #whats your system I want to know by platform.system()
-using_system = platform.system() 
-logging.warning('%s Used platform',using_system)
+using_system = platform.system()
+
+ 
+logging.warning('logging file Starts from here')
+logging.warning('You entered Metting id  - %d',Meeting_id)
+logging.warning('Your Used platform - %s',using_system)
 
 
 #some address which we will define here and use in whole program
@@ -62,7 +76,7 @@ for check_file in All_files:
     
 All_files = [check1_file for check1_file in All_files if str(Meeting_id) in check1_file]
 All_files = sorted(All_files)
-logging.warning('%s Matching files with Meeting id',All_files)
+logging.warning('Matching files with Meeting id - %s',All_files)
 
 #checking the condition for excel file in directory is available or not
 csv_avail = 0
@@ -87,32 +101,36 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     #this section will be for Master sheet which have all data
 
     def window_check_make_Master(): #function for windows c drive cheking and make a master sheet
-        if not os.path.exists("{}".format(win_cloud_dir)):
-            os.makedirs("{}".format(win_cloud_dir))
-        if not os.path.exists("{}".format(win_master_file)):
-            Master = pd.DataFrame(columns=["Timestamp","UTR No ( PhonePe)","Title","Registered Name",
-                                           "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
-                                           'Whatsapp No ',"Branch/ Department","Current Semester","College City",
-                                           'Status','Mode','Payee Name/New ID','Calling Responses',
-                                           'Zoom Name','Matched', 'Zoom id'])
-            Master.to_csv("{}".format(win_master_file), index = False)
-        if os.path.exists(r"{}".format(win_master_file)):
-            Master_sheet = pd.read_csv(r"{}".format(win_master_file))
+        if sheet.acell('A1').value == '':
+            Master_sheet_columns_list = ["Timestamp","UTR No ( PhonePe)","Title","Registered Name",
+                     "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
+                     'Whatsapp No ',"Branch/ Department","Current Semester","College City",
+                     'Status','Mode','Payee Name/New ID','Calling Responses',
+                      'Zoom Name','Matched', 'Zoom id']
+            for Master_sheet_columns_index,Master_sheet_columns_name in enumerate(Master_sheet_columns_list):
+                Master_sheet_columns_ind = Master_sheet_columns_index + 1
+                sheet.update_cell(1,Master_sheet_columns_ind,Master_sheet_columns_name)
+        Master_sheet_dict = sheet.get_all_values()
+        Master_sheet = pd.DataFrame(Master_sheet_dict)
+        Master_sheet.columns = Master_sheet.iloc[0]
+        Master_sheet.drop(Master_sheet.index[0],inplace=True)
         return Master_sheet
     
     
     def mac_check_make_Master(): #function for mac and linux c drive cheking and make a master sheet
-        if not os.path.exists("{}".format(mac_cloud_dir)):
-            os.makedirs("{}".format(mac_cloud_dir))
-        if not os.path.exists("{}".format(mac_master_file)):
-            Master = pd.DataFrame(columns=["Timestamp","UTR No ( PhonePe)","Title","Registered Name",
-                                           "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
-                                           'Whatsapp No ',"Branch/ Department","Current Semester","College City",
-                                           'Status','Mode','Payee Name/New ID','Calling Responses',
-                                           'Zoom Name','Matched', 'Zoom id'])
-            Master.to_csv("{}".format(mac_master_file), index = False)
-        if os.path.exists("{}".format(mac_master_file)):
-            Master_sheet = pd.read_csv("{}".format(mac_master_file))
+        if sheet.acell('A1').value == '':
+            Master_sheet_columns_list = ["Timestamp","UTR No ( PhonePe)","Title","Registered Name",
+                     "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
+                     'Whatsapp No ',"Branch/ Department","Current Semester","College City",
+                     'Status','Mode','Payee Name/New ID','Calling Responses',
+                      'Zoom Name','Matched', 'Zoom id']
+            for Master_sheet_columns_index,Master_sheet_columns_name in enumerate(Master_sheet_columns_list):
+                Master_sheet_columns_ind = Master_sheet_columns_index + 1
+                sheet.update_cell(1,Master_sheet_columns_ind,Master_sheet_columns_name)
+        Master_sheet_dict = sheet.get_all_values()
+        Master_sheet = pd.DataFrame(Master_sheet_dict)
+        Master_sheet.columns = Master_sheet.iloc[0]
+        Master_sheet.drop(Master_sheet.index[0],inplace=True)
         return Master_sheet
     
     
@@ -136,12 +154,14 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
        total_column2 = len(Inner_file.columns.tolist())
        Inner_file.dropna(thresh=total_column2-8,inplace=True)
        Inner_file.reset_index(inplace = True, drop = True)
+       logging.warning('Inside of report meeting id file Shape - %s',Inner_file.shape)
        
        outer_file = pd.read_excel("{}".format(outside_excel)) 
        total_column1 = len(outer_file.columns.tolist())
        outer_file.dropna(thresh=total_column1-8,inplace=True)
        outer_file.reset_index(inplace = True, drop = True)
-    
+       logging.warning('Outer of report meeting id file Shape - %s',outer_file.shape)
+       
        mail_id_column_name = []
        for column_name in outer_file.columns.tolist():
            if "MAIL" in column_name.upper():
@@ -219,7 +239,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     for check_list1_name in check_list1:
                 make_main_df4_column_list(check_list1_name)
             
-      
+    logging.warning('Choosed column list of main meeting id sheet - %s',df4_column_list)
         
     
     df4 = df4[df4_column_list]
@@ -250,7 +270,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         a = "day_"+str(file_i)
         before_updated_day.append(a)
     
-    logging.warning('%s',before_updated_day)  
+    logging.warning('before updated day list - %s',before_updated_day)  
     
 #Main for loop start from here making daywise csv files  
     for file_index,file_name in enumerate(files_name):
@@ -260,7 +280,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         file_number = File_Name[4]
         
         df1 = pd.read_csv("{}".format(File_Name))
-        logging.warning('%s',df1.shape)
+        logging.warning('Day{} Participants data Shape - %s'.format(file_index),df1.shape)
         df1 = df1[df1.columns.tolist()]
         
         df1.columns = ["Name", "Email", "Time"]
@@ -623,7 +643,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         frame=[present_data(prt_to_reg),suspence_merge_data()]
         result=pd.concat(frame)
         result.reset_index(inplace = True, drop = True)
-        logging.warning('%s',result.shape)
+        logging.warning('Day{} shape(present & suspence) - %s'.format(file_index),result.shape)
         #Now we will just store the result data in --> before_updated_day
         before_updated_day[file_index] = result
         
@@ -648,7 +668,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             present_data = present_data.append(new_row,ignore_index=True)
             return present_data
         present_data = only_present_data(day_index,null_index1)
-        
+        logging.warning('Day{} only present data shape- %s'.format(day_index),present_data.shape)
         
         #unregistered section
         t1_suspence = before_updated_day[day_index].iloc[null_index1+2 : null_index2,]
@@ -693,7 +713,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             new_row={"Zoom Name":"Absent","Email":"Data"}
             merge = merge.append(new_row,ignore_index=True)
             return merge
-         
+        logging.warning('Day{} only Suspence data shape- %s'.format(day_index),real_suspence_data_merge().shape)
         
         
         #this for Absent data
@@ -709,7 +729,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         else:
             t2_absent = t2_absent_func(t2_absent)
         
-        
+        logging.warning('Day{} only Absent data shape- %s'.format(day_index),t2_absent_func(t2_absent).shape)
         #work for all suspence data
         real_suspence = t2_real_suspence_copy[['Registered Name', 'Email', 'Gender', 'College Name', 'WhatsApp No.']]   
         real_suspence.columns = ['Name','Email','Gender','College Name','WhatsApp No.']
@@ -804,7 +824,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         return suspence_merge    
     
     suspence_merge = all_suspence_data(t1,t2)  #using all_suspence_data(t1,t2) function
-      
+    logging.warning('Total suspence shape- %s',suspence_merge.shape) 
     
     
     
@@ -954,7 +974,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         return Atleast_one_day
     
     Atleast_one_day = prepare1_Atleast_one_day()
-    
+    logging.warning('prepare1_Atleast_one_day shape- %s',Atleast_one_day.shape)
     
     #here we will make second step for Atleast_one_day
     def prepare2_Atleast_one_day(Atleast_one_day):   #step2
@@ -964,7 +984,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         return Atleast_one_day
     
     Atleast_one_day = prepare2_Atleast_one_day(Atleast_one_day)
-    
+    logging.warning('prepare2_Atleast_one_day shape- %s',Atleast_one_day.shape)
     
     def Atleast_one_day_column_list():
         Atleast_one_day_list = ['{}'.format(df4_column_list[0]), 'Gender', 'College Name', 'WhatsApp No.','Zoom Name', 'Email']
@@ -974,7 +994,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         
         Atleast_one_day_list.append("Total")
         return Atleast_one_day_list
-        
+    logging.warning('Atleast one day column list - %s',Atleast_one_day_column_list())    
     
     #choose columns according to our need
     Atleast_one_day = Atleast_one_day[Atleast_one_day_column_list()] #using Atleast_one_day_column_list() function 
@@ -990,7 +1010,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         Atleast_one_day = Atleast_one_day.rename(columns={df4_column_list[0]:'Name'})
         return Atleast_one_day
     
-    #suspence_merge1 = suspence_merge.rename(columns={'Name':df4_column_list[0]})
+    logging.warning('Complete_Atleast_one_day shape- %s',prepare3_Atleast_one_day(Atleast_one_day).shape)
     
     frame2 = [prepare3_Atleast_one_day(Atleast_one_day),suspence_merge] #using prepare3_Atleast_one_day(Atleast_one_day) function 
     Atleast_one_day = pd.concat(frame2)
@@ -1020,6 +1040,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         new_row = {'Name':"Suspense","Gender":"Data"}
         final = final.append(new_row,ignore_index=True) 
         return final
+    logging.warning('Everyday present data shape- %s',everyday_present(final).shape)
     
     frame3 = [everyday_present(final),suspence_merge]  #using everyday_present(final) here
     final = pd.concat(frame3)
@@ -1039,6 +1060,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         final_work = final_copy.merge(right = df4, how = "outer", on = "Zoom id", suffixes=('', '_Reg') )
         final_work = final_work[final_work['Zoom Name'].isnull()]
         return final_work
+    logging.warning('prepare1 not present Any day Shape - %s',prepare1_not_present().shape)
     
     final_work = prepare1_not_present()
     
@@ -1051,6 +1073,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             final_work_list.append(final_day_name)
         final_work_list.append("Total")
         return final_work_list
+    logging.warning('Column names of Not present data - %s',not_present_column_list())
     
     final_work = final_work[not_present_column_list()]
     
@@ -1068,6 +1091,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         new_row = {'Name':"Suspense","Gender":"Data"}
         final_work = final_work.append(new_row,ignore_index=True) 
         return final_work
+    logging.warning('Complete data not present Any day Shape - %s',prepare2_not_present(final_work).shape)
     
     frame4 = [prepare2_not_present(final_work),suspence_merge]
     final_work = pd.concat(frame4)
@@ -1088,6 +1112,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     Matching_data = df4_copy[df4_copy["Matched"] == True]
     Matching_data.reset_index(inplace = True, drop = True)
     Matching_data_email_list = Matching_data[df4_column_list[1]].values.tolist()
+    row_inc = 0
     for Matching_data_email_index,Matching_data_email in enumerate(Matching_data_email_list):
         if str(Matching_data_email) not in Master_sheet["Email ID"].values.tolist():
             
@@ -1106,37 +1131,21 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             for check_list_name in check_list_:
                 make_Master_columns_list(check_list_name)
                 
-            
-            dictionary = {'Timestamp' : Master_columns_list[0],
-                          'UTR No ( PhonePe)' : Master_columns_list[1],
-                          'Title' : Master_columns_list[2],
-                          'Registered Name' : Master_columns_list[3],
-                          'Designation' : Master_columns_list[4],
-                          'Email ID' : Master_columns_list[5],
-                          'Mobile No.' : Master_columns_list[6],
-                          'Your Gender' : Master_columns_list[7],
-                          'College Name' : Master_columns_list[8],
-                          'Whatsapp No ' : Master_columns_list[9],
-                          'Branch/ Department' : Master_columns_list[10],
-                          'Current Semester' : Master_columns_list[11],
-                          'College City' : Master_columns_list[12],
-                          'Status' : Master_columns_list[13],
-                          'Mode' : Master_columns_list[14],
-                          'Payee Name/New ID' : Master_columns_list[15],
-                          'Calling Responses' : Master_columns_list[16],
-                          'Zoom Name' : Master_columns_list[17],
-                          'Matched' : Master_columns_list[18],
-                          'Zoom id' : Master_columns_list[19]
-                          }
-            Master_sheet = Master_sheet.append(dictionary, ignore_index=True)
-    
-    #if windows our system
-    if using_system == 'Windows':
-        Master_sheet.to_csv(r"{}".format(win_master_file), index = False)
-    
-    #if Mac or linux our system    
-    if using_system == 'Darwin' or using_system == 'Linux':
-        Master_sheet.to_csv("{}".format(mac_master_file), index = False)         
+            Master_columns_list2 = []
+            for Master_columns_list_name in Master_columns_list:
+                if type(Master_columns_list_name) == numpy.float64 or type(Master_columns_list_name) == float:
+                    Master_columns_list2.append(str(Master_columns_list_name))
+                elif type(Master_columns_list_name) == numpy.int64:
+                    Master_columns_list2.append(int(Master_columns_list_name))
+                elif type(Master_columns_list_name) == numpy.bool_:
+                    Master_columns_list2.append(bool(Master_columns_list_name))
+                else:
+                    Master_columns_list2.append(Master_columns_list_name)
+                    
+                    
+            row_number = Master_sheet.shape[0] + 2 + row_inc
+            sheet.insert_row(Master_columns_list2,row_number)
+            row_inc += 1
 
 
 
