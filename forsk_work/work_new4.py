@@ -6,11 +6,14 @@ Created on Sun Jun  7 13:27:28 2020
 """
 
 
-
+import gspread_dataframe as gd
 import pandas as pd
+import pandas
 import numpy as np
 import numpy
 import os 
+import time
+from datetime import datetime
 import glob
 import platform
 import logging
@@ -18,23 +21,58 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets', "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+Meeting_id = int(input("Please Enter your Meeting Id: "))
+#you want to UI or not
+UI_run = input("Do you want to See UI: ")
+
+
+
+#Making a directory by name Reports
+if not os.path.exists("Reports"):
+    os.makedirs("Reports")
+#Creating the log file
+LOG_FILENAME = 'Reports/{}.log'.format(Meeting_id)
+logging.basicConfig(filename=LOG_FILENAME, filemode='w', format='%(asctime)s - %(name)s - %(lineno)d - %(message)s',level=logging.DEBUG)
+
+
+
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
 credentials = Credentials.from_service_account_file('Creds.json', scopes=SCOPES)
 client = gspread.authorize(credentials)
 
 
 
-LOG_FILENAME = 'example.log'
-logging.basicConfig(filename=LOG_FILENAME, filemode='w', format='%(asctime)s - %(name)s - %(lineno)d - %(message)s',level=logging.DEBUG)
+#This is Mark down text which will printed by softcoded.
+markdown_list = []
+
+try:
+    f= open("{}.txt".format(Meeting_id), 'r')
+    while True:
+        # read line
+        line = f.readline()
+        markdown_list.append(line)
+        # check if line is not empty
+        if not line:
+            break
+except (IOError, ValueError, EOFError) as e:
+  print(e)
+f.close()
+
+first_line = "## "+markdown_list[0]
+last_lines = "#### " + "\n#### ".join(markdown_list[1:])[:-6]
 
 
-Meeting_id = int(input("Please Enter your Meeting Id: "))
+markdown_text = '''
+{}
+{}
+'''.format(first_line,last_lines)
 
-#you want to UI or not
-UI_run = input("Do you want to See UI: ")
+
 
 print('Please wait we are reading master sheet...')
 sheet = client.open("Master").sheet1
+
+
 
 #whats your system I want to know by platform.system()
 using_system = platform.system()
@@ -96,8 +134,8 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     if not os.path.exists("Reports"):
         os.makedirs("Reports")
 
-
-
+                                                                                          
+                                                                                                      
     #this section will be for Master sheet which have all data
 
     def window_check_make_Master(): #function for windows c drive cheking and make a master sheet
@@ -106,7 +144,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                      "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
                      'Whatsapp No ',"Branch/ Department","Current Semester","College City",
                      'Status','Mode','Payee Name/New ID','Calling Responses',
-                      'Zoom Name','Matched', 'Zoom id']
+                      'Zoom id','Matched', 'Zoom Name']
             for Master_sheet_columns_index,Master_sheet_columns_name in enumerate(Master_sheet_columns_list):
                 Master_sheet_columns_ind = Master_sheet_columns_index + 1
                 sheet.update_cell(1,Master_sheet_columns_ind,Master_sheet_columns_name)
@@ -114,6 +152,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         Master_sheet = pd.DataFrame(Master_sheet_dict)
         Master_sheet.columns = Master_sheet.iloc[0]
         Master_sheet.drop(Master_sheet.index[0],inplace=True)
+        Master_sheet.reset_index(inplace = True, drop = True) 
         return Master_sheet
     
     
@@ -123,7 +162,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                      "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
                      'Whatsapp No ',"Branch/ Department","Current Semester","College City",
                      'Status','Mode','Payee Name/New ID','Calling Responses',
-                      'Zoom Name','Matched', 'Zoom id']
+                      'Zoom id','Matched', 'Zoom Name']
             for Master_sheet_columns_index,Master_sheet_columns_name in enumerate(Master_sheet_columns_list):
                 Master_sheet_columns_ind = Master_sheet_columns_index + 1
                 sheet.update_cell(1,Master_sheet_columns_ind,Master_sheet_columns_name)
@@ -131,6 +170,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         Master_sheet = pd.DataFrame(Master_sheet_dict)
         Master_sheet.columns = Master_sheet.iloc[0]
         Master_sheet.drop(Master_sheet.index[0],inplace=True)
+        Master_sheet.reset_index(inplace = True, drop = True) 
         return Master_sheet
     
     
@@ -274,6 +314,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
 #Main for loop start from here making daywise csv files  
     for file_index,file_name in enumerate(files_name):
+        
           
         File_Name = file_name
         
@@ -324,6 +365,32 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         
         prt_to_reg["Zoom id"] = np.nan
         
+        #Update sheet using master sheet (By Registered Email id)
+        Master_sheet_Email_list2 = Master_sheet["Email ID"].values.tolist()
+        df4_copy_email_list2 = df4_copy[df4_column_list[1]].values.tolist()
+        for df4_copy_email2_index,df4_copy_email2 in enumerate(df4_copy_email_list2):
+            for Master_sheet_Email_index,Master_sheet_Email in enumerate(Master_sheet_Email_list2):
+                if str(df4_copy_email2).upper().strip() == str(Master_sheet_Email).upper().strip():
+                    df4_copy.loc[df4_copy_email2_index,"Zoom id"] = Master_sheet["Zoom id"][Master_sheet_Email_index]
+                    df4_copy.loc[df4_copy_email2_index,"Matched"] = True
+                    df4_copy.loc[df4_copy_email2_index,"Zoom Name"] = Master_sheet["Zoom Name"][Master_sheet_Email_index]
+                    break
+           
+            
+        
+        #Update sheet using master sheet (By Zoom Email id)
+        Master_sheet_zoom_Email_list2 = Master_sheet["Zoom id"].values.tolist()
+        df4_copy_email_list3 = df4_copy[df4_column_list[1]].values.tolist()
+        for df4_copy_email3_index,df4_copy_email3 in enumerate(df4_copy_email_list3):
+            for Master_zoom_Email_index,Master_zoom_Email in enumerate(Master_sheet_zoom_Email_list2):
+                if str(df4_copy_email3).upper().strip() == str(Master_zoom_Email).upper().strip():
+                    df4_copy.loc[df4_copy_email3_index,"Zoom id"] = Master_sheet["Zoom id"][Master_zoom_Email_index]
+                    df4_copy.loc[df4_copy_email3_index,"Matched"] = True
+                    df4_copy.loc[df4_copy_email3_index,"Zoom Name"] = Master_sheet["Zoom Name"][Master_zoom_Email_index]
+                    break
+   
+        
+        
         
         zoom_list = df1['Name'].values.tolist()
         zoom_Email_list = df1['Email'].values.tolist()
@@ -332,9 +399,9 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         
         
         #Mater sheet indexing(first we will check in our master sheet for details)
-        master_sheet_Email_list = Master_sheet['Zoom id'].values.tolist()
-        master_sheet_store = []
-        zoom_store1 = []
+#        master_sheet_Email_list = Master_sheet['Zoom id'].values.tolist()
+#        master_sheet_store = []
+#        zoom_store1 = []
         
         
         #This for our registration data indexing
@@ -387,11 +454,11 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         #data checking from participants to registered.
         for zoom_index, zoom_name in enumerate(zoom_list):
             counter = 0
-            if str(zoom_Email_list[zoom_index]) in master_sheet_Email_list:
-                master_index = Master_sheet['Zoom id'].values.tolist().index(str(zoom_Email_list[zoom_index]))
-                master_sheet_store.append(master_index)
-                zoom_store1.append(zoom_index)
-            elif "." in str(zoom_Email_list[zoom_index]):
+#            if str(zoom_Email_list[zoom_index]) in master_sheet_Email_list:
+#                master_index = Master_sheet['Zoom id'].values.tolist().index(str(zoom_Email_list[zoom_index]))
+#                master_sheet_store.append(master_index)
+#                zoom_store1.append(zoom_index)
+            if "." in str(zoom_Email_list[zoom_index]):
                 for data1_Email_index,data1_Email in enumerate(data1_Email_list):
                     if str(zoom_Email_list[zoom_index]).upper().strip() == str(data1_Email).upper().strip():
                         counter += 1
@@ -431,21 +498,21 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                 
         
         #this section will right the supence entries by Matser sheet.
-        k = 0
-        for v in master_sheet_store:
-            while k < len(zoom_store1):
-                value1 = zoom_store1[k]
-                prt_to_reg = prt_to_reg.append({'Zoom Name': df1['Name'][value1], 
-                                                'Email': df1['Email'][value1], 
-                                                'Time': df1['Time'][value1],
-                                                'Registered Name': Master_sheet["Registered Name"][v].upper(),
-                                                'Gender': Master_sheet["Your Gender"][v],
-                                                'College Name': Master_sheet["College Name"][v],
-                                                'WhatsApp No.': Master_sheet["Whatsapp No "][v],
-                                                'Zoom id': Master_sheet["Email ID"][v]}, ignore_index=True)
-                
-                k += 1
-                break
+#        k = 0
+#        for v in master_sheet_store:
+#            while k < len(zoom_store1):
+#                value1 = zoom_store1[k]
+#                prt_to_reg = prt_to_reg.append({'Zoom Name': df1['Name'][value1], 
+#                                                'Email': df1['Email'][value1], 
+#                                                'Time': df1['Time'][value1],
+#                                                'Registered Name': Master_sheet["Registered Name"][v].upper(),
+#                                                'Gender': Master_sheet["Your Gender"][v],
+#                                                'College Name': Master_sheet["College Name"][v],
+#                                                'WhatsApp No.': Master_sheet["Whatsapp No "][v],
+#                                                'Zoom id': Master_sheet["Email ID"][v]}, ignore_index=True)
+#                
+#                k += 1
+#                break
            
     
     
@@ -485,8 +552,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                     df4_copy.loc[df4_copy_email_index,"Zoom Name"] = prt_to_reg["Zoom Name"][prt_to_reg_zoom_id_index]
                     break
         
-     
-   
+      
         
     
         
@@ -633,7 +699,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         
         
         #for full.csv
-        my_copy = prt_to_reg[:-2].copy()
+        my_copy = present_data(prt_to_reg)[:-2].copy()
         dataframe_name[file_index] = my_copy
         dataframe_name[file_index] = dataframe_name[file_index][["Zoom Name","Zoom id","Time"]]
         dataframe_name[file_index].columns = ["Name", "Zoom id", "Time"]
@@ -694,8 +760,13 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                             t2_real_suspence.append(t2_suspence.iloc[t2_suspence_index,])
     
         #this for suspence_t2
-        t2_real_suspence = pd.DataFrame(t2_real_suspence)
-        t2_real_suspence.reset_index(inplace = True, drop = True)
+        
+        if len(t2_real_suspence) == 0:
+            t2_real_suspence = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
+            t2_real_suspence.reset_index(inplace = True, drop = True)
+        else:
+            t2_real_suspence = pd.DataFrame(t2_real_suspence)
+            t2_real_suspence.reset_index(inplace = True, drop = True)
     
         #copy of t2_real_suspence for all suspence
         t2_real_suspence_copy = t2_real_suspence.copy()
@@ -752,7 +823,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
 #=============================================================
 #from here we will generate 4 extra details files
     
-
+         
     #code for suspence data
     t1.dropna(subset=['Email'], inplace=True)
     t1.reset_index(inplace = True, drop = True) 
@@ -1102,8 +1173,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
     
     #updated excel sheet
-    if not os.path.exists("{}".format(Inside_report_excel)):
-        df4_copy.to_csv("{}".format(Inside_report_excel), index = False)
+    df4_copy.to_csv("{}".format(Inside_report_excel), index = False)
                             
       
 
@@ -1112,9 +1182,11 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     Matching_data = df4_copy[df4_copy["Matched"] == True]
     Matching_data.reset_index(inplace = True, drop = True)
     Matching_data_email_list = Matching_data[df4_column_list[1]].values.tolist()
+    upper_list = [x.upper().strip() for x in Master_sheet["Email ID"].values.tolist()]
+    upper_list2 = [z.upper().strip() for z in Master_sheet["Zoom id"].values.tolist()]
     row_inc = 0
     for Matching_data_email_index,Matching_data_email in enumerate(Matching_data_email_list):
-        if str(Matching_data_email) not in Master_sheet["Email ID"].values.tolist():
+        if str(Matching_data_email).upper().strip() not in upper_list and str(Matching_data_email).upper().strip() not in upper_list2 and Matching_data["Zoom id"][Matching_data_email_index].upper().strip() not in upper_list and Matching_data["Zoom id"][Matching_data_email_index].upper().strip() not in upper_list2:                                                                       
             
             Master_columns_list = []
             def make_Master_columns_list(column_n):
@@ -1130,23 +1202,38 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                           'ZOOM ID','MATCHED','ZOOM NAME']
             for check_list_name in check_list_:
                 make_Master_columns_list(check_list_name)
-                
-            Master_columns_list2 = []
-            for Master_columns_list_name in Master_columns_list:
-                if type(Master_columns_list_name) == numpy.float64 or type(Master_columns_list_name) == float:
-                    Master_columns_list2.append(str(Master_columns_list_name))
-                elif type(Master_columns_list_name) == numpy.int64:
-                    Master_columns_list2.append(int(Master_columns_list_name))
-                elif type(Master_columns_list_name) == numpy.bool_:
-                    Master_columns_list2.append(bool(Master_columns_list_name))
-                else:
-                    Master_columns_list2.append(Master_columns_list_name)
-                    
-                    
-            row_number = Master_sheet.shape[0] + 2 + row_inc
-            sheet.insert_row(Master_columns_list2,row_number)
-            row_inc += 1
+            
+            dictionary = {'Timestamp' : Master_columns_list[0],
+                          'UTR No ( PhonePe)' : Master_columns_list[1],
+                          'Title' : Master_columns_list[2],
+                          'Registered Name' : Master_columns_list[3],
+                          'Designation' : Master_columns_list[4],
+                          'Email ID' : Master_columns_list[5],
+                          'Mobile No.' : Master_columns_list[6],
+                          'Your Gender' : Master_columns_list[7],
+                          'College Name' : Master_columns_list[8],
+                          'Whatsapp No ' : Master_columns_list[9],
+                          'Branch/ Department' : Master_columns_list[10],
+                          'Current Semester' : Master_columns_list[11],
+                          'College City' : Master_columns_list[12],
+                          'Status' : Master_columns_list[13],
+                          'Mode' : Master_columns_list[14],
+                          'Payee Name/New ID' : Master_columns_list[15],
+                          'Calling Responses' : Master_columns_list[16],
+                          'Zoom id' : Master_columns_list[17],
+                          'Matched' : Master_columns_list[18],
+                          'Zoom Name' : Master_columns_list[19]
+                          }
+            Master_sheet = Master_sheet.append(dictionary, ignore_index=True)
+    
+    #If in any zoom id empty than we will fill that
+    for Master_sheet_empty_index,Master_sheet_empty in enumerate(Master_sheet["Email ID"].values.tolist()):
+        if Master_sheet["Zoom id"][Master_sheet_empty_index] == '':
+            Master_sheet["Zoom id"][Master_sheet_empty_index] = Master_sheet_empty
 
+    #Upload the complete master sheet     
+    gd.set_with_dataframe(sheet, Master_sheet)        
+            
 
 
     
@@ -1202,12 +1289,12 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         
         
         
-        markdown_text = '''
-        ## **Prime - 5** (Unsupervised Machine Learning Training)
-        #### Schedule **26 to 30 May** (5 days Training Timing 5:00Pm - 7:00Pm)
-        #### Traning Fee : INR - only **500 /-INR**
-        ######  Call or whatsapp. [+917851929944](/)
-        '''
+        
+        
+        
+        
+        
+        
         
         #Daylist for Dropdown
         list1 = []
