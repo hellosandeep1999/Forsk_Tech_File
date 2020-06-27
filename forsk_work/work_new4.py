@@ -30,45 +30,20 @@ UI_run = input("Do you want to See UI: ")
 #Making a directory by name Reports
 if not os.path.exists("Reports"):
     os.makedirs("Reports")
+    
 #Creating the log file
 LOG_FILENAME = 'Reports/{}.log'.format(Meeting_id)
 logging.basicConfig(filename=LOG_FILENAME, filemode='w', format='%(asctime)s - %(name)s - %(lineno)d - %(message)s',level=logging.DEBUG)
 
 
-
+#define credentials and scope of Google sheets API for our script
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
 credentials = Credentials.from_service_account_file('Creds.json', scopes=SCOPES)
 client = gspread.authorize(credentials)
 
 
 
-#This is Mark down text which will printed by softcoded.
-markdown_list = []
-
-try:
-    f= open("{}.txt".format(Meeting_id), 'r')
-    while True:
-        # read line
-        line = f.readline()
-        markdown_list.append(line)
-        # check if line is not empty
-        if not line:
-            break
-except (IOError, ValueError, EOFError) as e:
-  print(e)
-f.close()
-
-first_line = "## "+markdown_list[0]
-last_lines = "#### " + "\n#### ".join(markdown_list[1:])[:-6]
-
-
-markdown_text = '''
-{}
-{}
-'''.format(first_line,last_lines)
-
-
-
+#here we will make our connection with our google sheet
 print('Please wait we are reading master sheet...')
 sheet = client.open("Master").sheet1
 
@@ -77,8 +52,8 @@ sheet = client.open("Master").sheet1
 #whats your system I want to know by platform.system()
 using_system = platform.system()
 
- 
-logging.warning('logging file Starts from here')
+
+logging.warning('logging file Starts from here')  #our logging file work start from here
 logging.warning('You entered Metting id  - %d',Meeting_id)
 logging.warning('Your Used platform - %s',using_system)
 
@@ -98,11 +73,11 @@ outside_excel = "{}.xlsx".format(Meeting_id)                #outside excel sheet
 pd.options.mode.chained_assignment = None
 
 
-
+#find all csv and excel files of our program 
 extension1 = 'csv'
 extension2 = 'xlsx'
-All_csv_files = glob.glob('*.{}'.format(extension1))
-All_excel_files = glob.glob('*.{}'.format(extension2))
+All_csv_files = glob.glob('*.{}'.format(extension1))  #this is for csv file
+All_excel_files = glob.glob('*.{}'.format(extension2))  #this is for excel file
 All_files = All_csv_files + All_excel_files
 
 
@@ -115,6 +90,7 @@ for check_file in All_files:
 All_files = [check1_file for check1_file in All_files if str(Meeting_id) in check1_file]
 All_files = sorted(All_files)
 logging.warning('Matching files with Meeting id - %s',All_files)
+
 
 #checking the condition for excel file in directory is available or not
 csv_avail = 0
@@ -227,7 +203,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
               Reconcil_count += 1
        return Reconcil_dataframe 
        
-       
+    #here we will execute our reconcilation function    
     if os.path.exists("{}".format(Inside_report_excel)):
        Reconcil_dataframe = Reconcilation_process()
        Reconcil_dataframe.to_csv("{}".format(Inside_report_excel), index = False)
@@ -282,7 +258,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     logging.warning('Choosed column list of main meeting id sheet - %s',df4_column_list)
         
     
-    df4 = df4[df4_column_list]
+    df4 = df4[df4_column_list]  #set columns which we want
     
     
         
@@ -356,11 +332,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         df4['Name'] = [name.upper() for name in df4['Name'].tolist()]
         data_list = df4['Name'].tolist()
         df4['Name'] = removing(data_list)
-        
-    #   if file == 0:
-    #        df4_copy[df4_column_list[0]] = [name.upper() for name in df4_copy[df4_column_list[0]].tolist()]
-    #        data_list = df4_copy[df4_column_list[0]].tolist()
-    #        df4_copy[df4_column_list[0]] = removing(data_list)
+
         
         
         prt_to_reg["Zoom id"] = np.nan
@@ -398,10 +370,6 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         data1_Email_list = df4['Email'].values.tolist()
         
         
-        #Mater sheet indexing(first we will check in our master sheet for details)
-#        master_sheet_Email_list = Master_sheet['Zoom id'].values.tolist()
-#        master_sheet_store = []
-#        zoom_store1 = []
         
         
         #This for our registration data indexing
@@ -454,10 +422,6 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         #data checking from participants to registered.
         for zoom_index, zoom_name in enumerate(zoom_list):
             counter = 0
-#            if str(zoom_Email_list[zoom_index]) in master_sheet_Email_list:
-#                master_index = Master_sheet['Zoom id'].values.tolist().index(str(zoom_Email_list[zoom_index]))
-#                master_sheet_store.append(master_index)
-#                zoom_store1.append(zoom_index)
             if "." in str(zoom_Email_list[zoom_index]):
                 for data1_Email_index,data1_Email in enumerate(data1_Email_list):
                     if str(zoom_Email_list[zoom_index]).upper().strip() == str(data1_Email).upper().strip():
@@ -495,26 +459,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                       
             else:
                 name_checking_func(zoom_name,zoom_index)
-                
-        
-        #this section will right the supence entries by Matser sheet.
-#        k = 0
-#        for v in master_sheet_store:
-#            while k < len(zoom_store1):
-#                value1 = zoom_store1[k]
-#                prt_to_reg = prt_to_reg.append({'Zoom Name': df1['Name'][value1], 
-#                                                'Email': df1['Email'][value1], 
-#                                                'Time': df1['Time'][value1],
-#                                                'Registered Name': Master_sheet["Registered Name"][v].upper(),
-#                                                'Gender': Master_sheet["Your Gender"][v],
-#                                                'College Name': Master_sheet["College Name"][v],
-#                                                'WhatsApp No.': Master_sheet["Whatsapp No "][v],
-#                                                'Zoom id': Master_sheet["Email ID"][v]}, ignore_index=True)
-#                
-#                k += 1
-#                break
-           
-    
+
     
         #If data is matched than student will get present. 
         j = 0
@@ -626,11 +571,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                 
                 if len(set_intersection) > 0:
                     pass
-#                    change_list = list(set_intersection)
-#                        store.append(change_list[0])
-#                        zoom_store.append(zoom_index)
-#                        f["Zoom id"][zoom_index] = df4["Email"][change_list[0]]
-#                        df4_copy["Zoom id"][change_list[0]] = f['Email'][zoom_index]
+
                 else:
                    suspence_store_t2.append(data1_index) 
                            
@@ -643,7 +584,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             if "." in str(data1_Email_list[data1_index]):
                 for zoom_Email_index,zoom_Email in enumerate(zoom_Email_list):
                     if str(data1_Email_list[data1_index]).upper().strip() == str(zoom_Email).upper().strip():
-                        data1_name_func(data1_name)
+                        data1_name = data1_name_func(data1_name)
                         
                         if zoom_list_filter.count(data1_name) > 1:
                             suspence_store_t2.append(data1_index)
@@ -653,7 +594,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                             break
                               
                 else:
-                    name_cheking_t2(data1_name,name_cheking_t2)
+                    suspence_store_t2.append(data1_index) 
                     
             else:
                 name_cheking_t2(data1_name,name_cheking_t2)
@@ -728,12 +669,16 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         #Present data
         def only_present_data(day_index,null_index1):
             present_data = before_updated_day[day_index].iloc[:null_index1,]
+            present_data.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
+            present_data.reset_index(inplace = True, drop = True)
             present_data = present_data.append(pd.Series("nan"), ignore_index=True)
             present_data = present_data.drop([0],axis=1) 
             new_row={"Zoom Name":"Suspense","Email":"Data"}
             present_data = present_data.append(new_row,ignore_index=True)
             return present_data
         present_data = only_present_data(day_index,null_index1)
+        
+        
         logging.warning('Day{} only present data shape- %s'.format(day_index),present_data.shape)
         
         #unregistered section
@@ -1262,7 +1207,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
     
     
-    
+    #we start from here our UI part
     if UI_run.upper() == 'Y' or UI_run.upper() == 'YES':
     
         import dash
@@ -1278,11 +1223,11 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         import webbrowser
         from threading import Timer
         
-        
+        #open browser automatically
         def open_browser():
               webbrowser.open_new('http://127.0.0.1:8050/')
           
-            
+        #use external css for making our UI more interactive    
         external_stylesheets = ['https://codepen.io/amyoshino/pen/jzXypZ.css']
         
         app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -1291,6 +1236,36 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         
         
         
+        #This is Mark down text which will printed by softcoded.
+        
+        if os.path.exists("{}.txt".format(Meeting_id)):  #first we will check that our txt file available or not
+            markdown_list = []
+            
+            try:
+                f= open("{}.txt".format(Meeting_id), 'r')
+                while True:
+                    # read line
+                    line = f.readline()
+                    markdown_list.append(line)
+                    # check if line is not empty
+                    if not line:
+                        break
+            except (IOError, ValueError, EOFError) as e:
+              print(e)
+            f.close()
+            
+            
+            all_lines = "\n".join(markdown_list)[:-1]
+            
+            
+            markdown_text = '''
+            {}
+            '''.format(all_lines)
+        else:
+            markdown_text = '''
+            
+            '''
+
         
         
         
@@ -1414,6 +1389,8 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             html.Div([dcc.Markdown(children=markdown_text)],
                       style={
                     'textAlign': 'center',
+                    'font-size': '23px',
+                    'font-family': "Comic Sans MS",
                 }
             ),
             
