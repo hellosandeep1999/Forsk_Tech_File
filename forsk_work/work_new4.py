@@ -120,7 +120,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                      "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
                      'Whatsapp No ',"Branch/ Department","Current Semester","College City",
                      'Status','Mode','Payee Name/New ID','Calling Responses',
-                      'Zoom id','Matched', 'Zoom Name']
+                      'Zoom id','Matched', 'Zoom Name','Meeting ID']
             for Master_sheet_columns_index,Master_sheet_columns_name in enumerate(Master_sheet_columns_list):
                 Master_sheet_columns_ind = Master_sheet_columns_index + 1
                 sheet.update_cell(1,Master_sheet_columns_ind,Master_sheet_columns_name)
@@ -138,7 +138,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                      "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
                      'Whatsapp No ',"Branch/ Department","Current Semester","College City",
                      'Status','Mode','Payee Name/New ID','Calling Responses',
-                      'Zoom id','Matched', 'Zoom Name']
+                      'Zoom id','Matched', 'Zoom Name','Meeting ID']
             for Master_sheet_columns_index,Master_sheet_columns_name in enumerate(Master_sheet_columns_list):
                 Master_sheet_columns_ind = Master_sheet_columns_index + 1
                 sheet.update_cell(1,Master_sheet_columns_ind,Master_sheet_columns_name)
@@ -342,7 +342,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         df4_copy_email_list2 = df4_copy[df4_column_list[1]].values.tolist()
         for df4_copy_email2_index,df4_copy_email2 in enumerate(df4_copy_email_list2):
             for Master_sheet_Email_index,Master_sheet_Email in enumerate(Master_sheet_Email_list2):
-                if str(df4_copy_email2).upper().strip() == str(Master_sheet_Email).upper().strip():
+                if str(df4_copy_email2).upper().strip() in str(Master_sheet_Email).upper().strip():
                     df4_copy.loc[df4_copy_email2_index,"Zoom id"] = Master_sheet["Zoom id"][Master_sheet_Email_index]
                     df4_copy.loc[df4_copy_email2_index,"Matched"] = True
                     df4_copy.loc[df4_copy_email2_index,"Zoom Name"] = Master_sheet["Zoom Name"][Master_sheet_Email_index]
@@ -355,7 +355,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         df4_copy_email_list3 = df4_copy[df4_column_list[1]].values.tolist()
         for df4_copy_email3_index,df4_copy_email3 in enumerate(df4_copy_email_list3):
             for Master_zoom_Email_index,Master_zoom_Email in enumerate(Master_sheet_zoom_Email_list2):
-                if str(df4_copy_email3).upper().strip() == str(Master_zoom_Email).upper().strip():
+                if str(df4_copy_email3).upper().strip() in str(Master_zoom_Email).upper().strip():
                     df4_copy.loc[df4_copy_email3_index,"Zoom id"] = Master_sheet["Zoom id"][Master_zoom_Email_index]
                     df4_copy.loc[df4_copy_email3_index,"Matched"] = True
                     df4_copy.loc[df4_copy_email3_index,"Zoom Name"] = Master_sheet["Zoom Name"][Master_zoom_Email_index]
@@ -1170,6 +1170,39 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                           'Zoom Name' : Master_columns_list[19]
                           }
             Master_sheet = Master_sheet.append(dictionary, ignore_index=True)
+    
+    
+    
+    
+    #we will fill the meeting id also of every student
+    def fill_meeting_id1(Matching_data_email):
+        match_index = upper_list.index(str(Matching_data_email).upper().strip())
+        if str(Meeting_id) not in Master_sheet["Meeting ID"][match_index]:
+            if Master_sheet["Meeting ID"][match_index] == '':
+                Master_sheet["Meeting ID"][match_index] = str(Meeting_id)
+            else:
+                Master_sheet["Meeting ID"][match_index] = Master_sheet["Meeting ID"][match_index] + " , " + str(Meeting_id)
+        
+    def fill_meeting_id2(Matching_data_email):
+        match_index = upper_list2.index(str(Matching_data_email).upper().strip())
+        if str(Meeting_id) not in Master_sheet["Meeting ID"][match_index]:
+            if Master_sheet["Meeting ID"][match_index] == '':
+                Master_sheet["Meeting ID"][match_index] = str(Meeting_id)
+            else:
+                Master_sheet["Meeting ID"][match_index] = Master_sheet["Meeting ID"][match_index] + " , " + str(Meeting_id)
+        
+    for Matching_data_email_index,Matching_data_email in enumerate(Matching_data_email_list):
+        if str(Matching_data_email).upper().strip() in upper_list:
+            fill_meeting_id1(Matching_data_email)
+        elif str(Matching_data_email).upper().strip() in upper_list2:
+            fill_meeting_id2(Matching_data_email)
+        elif Matching_data["Zoom id"][Matching_data_email_index].upper().strip() in upper_list:
+            fill_meeting_id1(Matching_data["Zoom id"][Matching_data_email_index])
+        elif Matching_data["Zoom id"][Matching_data_email_index].upper().strip() in upper_list2:
+            fill_meeting_id2(Matching_data["Zoom id"][Matching_data_email_index])
+                                                                         
+            
+    
     
     #If in any zoom id empty than we will fill that
     for Master_sheet_empty_index,Master_sheet_empty in enumerate(Master_sheet["Email ID"].values.tolist()):
