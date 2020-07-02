@@ -216,11 +216,13 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         total_column = len(df4.columns.tolist())
         df4.dropna(thresh=total_column-8,inplace=True)
         df4_copy = df4.copy()
+        print("Total Registered for this Season: ",len(df4_copy))
     else:
         df4 = pd.read_excel("{}".format(outside_excel))
         total_column = len(df4.columns.tolist())
         df4.dropna(thresh=total_column-8,inplace=True)
         df4_copy = df4.copy()
+        print("Total Registered for this Season: ",len(df4_copy))
     
     
     if "Zoom id" not in df4_copy.columns.tolist():
@@ -251,6 +253,7 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             if df4_column1 in column_name.upper():
                 df4_column_list.append(column_name)
                 break
+            
     check_list1 = ['NAME','MAIL','GENDER','COLLEGE','WHATSAPP']
     for check_list1_name in check_list1:
                 make_main_df4_column_list(check_list1_name)
@@ -1126,9 +1129,9 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
 
     #this part for true entris which are true in df4_copy but false in master sheet
-    upper_list3 = [x.upper().strip() for x in Master_sheet["Email ID"].values.tolist()]
-    df4_copy_email_upper = [y.upper().strip() for y in df4_copy[df4_column_list[1]].values.tolist()]
-    df4_copy_zoom_upper = [r if type(r) == float else r.upper().strip() for r in df4_copy["Zoom id"].values.tolist()]
+    upper_list3 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+    df4_copy_email_upper = [y.upper().strip() if type(y) == str else y for y in df4_copy[df4_column_list[1]].values.tolist()]
+    df4_copy_zoom_upper = [r.upper().strip() if type(r) == str else r for r in df4_copy["Zoom id"].values.tolist()]
     for upper_list3_index,upper_list3_email in enumerate(upper_list3):
         if Master_sheet['Matched'][upper_list3_index] == 'FALSE':
             if upper_list3_email in df4_copy_email_upper:
@@ -1150,12 +1153,12 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     Matching_data = df4_copy.copy()
     Matching_data.reset_index(inplace = True, drop = True)
     Matching_data_email_list = Matching_data[df4_column_list[1]].values.tolist()
-    upper_list = [x.upper().strip() for x in Master_sheet["Email ID"].values.tolist()]
-    upper_list2 = [z.upper().strip() for z in Master_sheet["Zoom id"].values.tolist()]
+    upper_list = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+    upper_list2 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
     row_inc = 0
     for Matching_data_email_index,Matching_data_email in enumerate(Matching_data_email_list):
         if Matching_data["Matched"][Matching_data_email_index] == True:
-            if str(Matching_data_email).upper().strip() not in upper_list and str(Matching_data_email).upper().strip() not in upper_list2 and Matching_data["Zoom id"][Matching_data_email_index].upper().strip() not in upper_list and Matching_data["Zoom id"][Matching_data_email_index].upper().strip() not in upper_list2:                                                                       
+            if str(Matching_data_email).upper().strip() not in upper_list and str(Matching_data_email).upper().strip() not in upper_list2 and str(Matching_data["Zoom id"][Matching_data_email_index]).upper().strip() not in upper_list and str(Matching_data["Zoom id"][Matching_data_email_index]).upper().strip() not in upper_list2:                                                                       
                 
                 Master_columns_list = []
                 def make_Master_columns_list(column_n):
@@ -1258,9 +1261,10 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                 Master_sheet["Meeting ID"][match_index] = Master_sheet["Meeting ID"][match_index] + " , " + str(Meeting_id)
     
     
-    upper_list = [x.upper().strip() for x in Master_sheet["Email ID"].values.tolist()]
-    upper_list2 = [z.upper().strip() for z in Master_sheet["Zoom id"].values.tolist()]
+    upper_list = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+    upper_list2 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
     
+
     for Matching_data_email_index,Matching_data_email in enumerate(Matching_data_email_list):
         if Matching_data["Matched"][Matching_data_email_index] == True:
             if str(Matching_data_email).upper().strip() in upper_list:
@@ -1282,11 +1286,13 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
     
     #If in any zoom id empty than we will fill that
     for Master_sheet_empty_index,Master_sheet_empty in enumerate(Master_sheet["Email ID"].values.tolist()):
-        if Master_sheet["Matched"][Master_sheet_empty_index] == 'TRUE':
-            if Master_sheet["Zoom id"][Master_sheet_empty_index] == '':
+        if Master_sheet["Matched"][Master_sheet_empty_index] == 'TRUE' or Master_sheet["Matched"][Master_sheet_empty_index] == True:
+            if Master_sheet["Zoom id"][Master_sheet_empty_index] == '' or type(Master_sheet["Zoom id"][Master_sheet_empty_index]) == float:
                 Master_sheet["Zoom id"][Master_sheet_empty_index] = Master_sheet_empty
 
-    #Upload the complete master sheet     
+    #Upload the complete master sheet   
+    Master_sheet.drop_duplicates(subset=["Email ID"], keep='first', inplace=True)
+    Master_sheet.reset_index(inplace = True, drop = True)
     gd.set_with_dataframe(sheet, Master_sheet)        
             
 
@@ -1401,16 +1407,16 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         #this for all Full datapresent (Who are present everyday)
         Full_data_present = pd.read_csv("Reports/Full_data_present_everyday.csv")
         Full_dat_index = Full_data_present[(Full_data_present["Name"].isnull())].index[0]
-        Full_data_present = Full_data_present.iloc[:Full_dat_index,]
+        Full_data_present1 = Full_data_present.iloc[:Full_dat_index,]
         
-        Full_data_list1 = ['Name','Gender','College Name','Email','WhatsApp No.']
+        Full_data_present1.rename(columns={'Total':'Total Time(Minutes)','Name':'Registered Name'}, inplace = True )
+        Full_data_list1 = ['Registered Name','Gender','College Name','Email','WhatsApp No.']
         Full_data_list2 = Full_data_present.columns.tolist()[6:-1]
         Full_data_list = Full_data_list1 + Full_data_list2
         
         
-        fig1 = px.bar(Full_data_present, y ='Total',x = 'Zoom Name',
-                        text='Total',
-                        color='Total',
+        fig1 = px.bar(Full_data_present1, y ='Total Time(Minutes)',x = 'Registered Name',
+                        text='Total Time(Minutes)',
                         hover_data=Full_data_list,
                         height=450,
                      )
@@ -1462,7 +1468,28 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         }
         
             
-        app.layout = html.Div( children=[
+        app.layout = html.Div(
+        html.Div([
+                dbc.Container(
+                html.Div(
+                [
+                html.Img(
+                    src="https://lh3.googleusercontent.com/proxy/YFbDG59xMddfeZWWA1TtjhB41pRkDJH5f4iLXeajAxn1E-yK0Ma8LngPUHizLJbsEeOPSstVsLI2q0B4SIzC34s",
+                    className='three columns',
+                    style={
+                        'height': '13%',
+                        'width': '23%',
+                        'float': 'center',
+                        'position': 'relative',
+                        'padding-top': 0,
+                        'margin-left': 360,
+                        'textAlign': 'center'
+                        },
+                    ),
+                ], className="row"
+            ),
+        ),
+        html.Div( children=[
                 
             html.H1(
                 children='Forsk Coding School',
@@ -1473,15 +1500,14 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                     'borderRadius': '5px',
                     'margin': '20px',
                     'padding': '10px',
-                    'borderStyle': 'dashed',
-                    'margin-bottom':'0px',
+                    'margin-bottom':'-6px',
                     'font-size': '40px',
                     'margin-top':'10px'
                     
                 }
             ),
             html.H3(
-                children='-- Student Attendence Analysis --',
+                children=' Student Attendence Analysis ',
                 style={
                     'textAlign': 'center',
                     'color': colors['color1'],
@@ -1506,21 +1532,24 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             
             
             #dropdown (Days)
+            dbc.Container(
             html.Div([dcc.Dropdown(id='dd',
                 options=[{'label': c , 'value': c} for c in list1],
                 value='Day1')],
             style={
                     'width':'40%',
-                    'padding':40
+                    'padding':40,
+                    'justify-content': 'center',
+                    'margin-left':220
                 }
             ),
-            
+            ),
             
             
             
             #Present Registered student
             html.H3(
-                children='Registered & Present Student',
+                children='Registered & Participants',
                 style={
                     'textAlign': 'center',
                     'color': colors['color2'],
@@ -1530,6 +1559,18 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                     'font': '20px Arial, sans-serif',
                     
                 }
+            ),
+            html.H3(
+            id = 'reg',
+            style={
+                'textAlign': 'center',
+                'color': 'black',
+                'margin': 'auto',
+                'font-size': '25px',
+                'margin-bottom':'0px',
+                'font': '20px Arial, sans-serif',
+                
+            }
             ),
             #graph1
             dcc.Graph(id = 'graph'),
@@ -1550,7 +1591,18 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                     'font': '20px Arial, sans-serif',
                 }
             ),
-            
+            html.H3(
+            id = 'reg1',
+            style={
+                'textAlign': 'center',
+                'color': 'black',
+                'margin': 'auto',
+                'font-size': '25px',
+                'margin-bottom':'10px',
+                'font': '20px Arial, sans-serif',
+                
+            }
+            ),
             
             
             #Absent student Table
@@ -1599,6 +1651,18 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                     'margin-top':'70px',
                     'font': '20px Arial, sans-serif',
                 }
+            ),
+            html.H3(
+            id = 'reg2',
+            style={
+                'textAlign': 'center',
+                'color': 'black',
+                'margin': 'auto',
+                'font-size': '25px',
+                'margin-bottom':'10px',
+                'font': '20px Arial, sans-serif',
+                
+            }
             ),
             
             #Suspence Data Table
@@ -1801,13 +1865,43 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
             ),
            
                       
-                        
+             
+                
+             #footer part
+              html.H3(
+                children='Footer Section',
+                style={
+                    'textAlign': 'center',
+                    'color': colors['color1'],
+                    'backgroundColor': colors['color2'],
+                    'borderRadius': '2px',
+                    'padding': '70px',
+                    'margin-bottom':'0',
+                    'font-size': '20px',
+                    'margin-top':'20px'
+                    
+                }
+            ),
                                 
+        ]),
+    
         ])
+        )
         
         
         
+        @app.callback(dash.dependencies.Output('reg','children'),[dash.dependencies.Input('dd','value')])
+        def update_fig(value):  
+            return value
         
+        
+        @app.callback(dash.dependencies.Output('reg1','children'),[dash.dependencies.Input('dd','value')])
+        def update_fig1(value):  
+            return value
+        
+        @app.callback(dash.dependencies.Output('reg2','children'),[dash.dependencies.Input('dd','value')])
+        def update_fig2(value):  
+            return value
         
         #calling for Registered and present students
         @app.callback(dash.dependencies.Output('graph','figure'),[dash.dependencies.Input('dd','value')])
@@ -1818,10 +1912,10 @@ if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
                 dff = pd.read_csv("Reports/{}.csv".format(value))
                 a = dff[(dff["Email"].isnull())].index[0]
                 dff = dff.iloc[:a,]
-                figure = px.bar(dff, y ='Time',x = 'Zoom Name',
-                                text='Time',
-                                color='Time',
-                                hover_data=['Registered Name','Gender','College Name','Email'],
+                dff.rename(columns={'Time':'Time(Minutes)'}, inplace = True )
+                figure = px.bar(dff, y ='Time(Minutes)',x = 'Registered Name',
+                                text='Time(Minutes)',
+                                hover_data=['Registered Name','Gender','College Name','WhatsApp No.','Email'],
                                 height=650,
                                 )
                 figure.update_traces(texttemplate='%{text:.2s}', textposition='outside')
