@@ -63,7 +63,7 @@ if is_internet():
     try:
         #define credentials and scope of Google sheets API for our script
         SCOPES = ["https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
-        credentials = Credentials.from_service_account_file('Creds.json', scopes=SCOPES)
+        credentials = Credentials.from_service_account_file('assets/Creds.json', scopes=SCOPES)
         client = gspread.authorize(credentials)
     except FileNotFoundError as msg1:
         print("Error 2",msg1)
@@ -128,10 +128,18 @@ if is_internet():
     if csv_avail == 1 and Excel_avail == 1 and len(All_files) == check_file_count:
         
         #this is just for count that how many students are registered for perticuler season
-        reg_excel = pd.read_excel("{}".format(outside_excel))
-        reg_total_columns = len(reg_excel.columns.tolist())
-        reg_excel.dropna(thresh=reg_total_columns-8,inplace=True)
-        print("\nTotal Registered for this Season: ",len(reg_excel),'\n')
+        consolated_dataframe = pd.read_excel("{}".format(outside_excel))
+        consolated_dataframe_total_columns = len(consolated_dataframe.columns.tolist())
+        consolated_dataframe.dropna(thresh=consolated_dataframe_total_columns-8,inplace=True)
+        consolated_dataframe_email_column = []
+        for column_name_ in consolated_dataframe.columns.tolist():
+            if "MAIL" in column_name_.upper():
+                consolated_dataframe_email_column.append(column_name_)
+                break
+        consolated_dataframe = consolated_dataframe.rename(columns={consolated_dataframe_email_column[0]: 'Email'})
+        consolated_dataframe.drop_duplicates(subset=['Email'], keep='first', inplace=True)
+        consolated_dataframe.reset_index(inplace = True, drop = True) 
+        print("\nTotal Registered for this Season: ",len(consolated_dataframe),'\n')
         
         
         
@@ -158,7 +166,7 @@ if is_internet():
                 if sheet.acell('A1').value == '':
                     Master_sheet_columns_list = ["Timestamp","UTR No ( PhonePe)","Title","Registered Name",
                              "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
-                             'Whatsapp No ',"Branch/ Department","Current Semester","College City",
+                             'Whatsapp No ',"Branch/ Department","Current Semester","College City","State",
                              'Status','Mode','Payee Name/New ID','Calling Responses',
                               'Zoom id','Matched', 'Zoom Name','Meeting ID']
                     for Master_sheet_columns_index,Master_sheet_columns_name in enumerate(Master_sheet_columns_list):
@@ -179,7 +187,7 @@ if is_internet():
                 if sheet.acell('A1').value == '':
                     Master_sheet_columns_list = ["Timestamp","UTR No ( PhonePe)","Title","Registered Name",
                              "Designation","Email ID","Mobile No.",'Your Gender',"College Name",
-                             'Whatsapp No ',"Branch/ Department","Current Semester","College City",
+                             'Whatsapp No ',"Branch/ Department","Current Semester","College City","State",
                              'Status','Mode','Payee Name/New ID','Calling Responses',
                               'Zoom id','Matched', 'Zoom Name','Meeting ID']
                     for Master_sheet_columns_index,Master_sheet_columns_name in enumerate(Master_sheet_columns_list):
@@ -290,7 +298,7 @@ if is_internet():
             
         
         #File_Total is tell us that how many files are exists
-        File_Total = len(files_name)
+#        File_Total = len(files_name)
         
         
         #here we are choose column names which are usefull for our script
@@ -301,6 +309,9 @@ if is_internet():
                     if df4_column1 in column_name.upper():
                         df4_column_list.append(column_name)
                         break
+                else:
+                    df4[df4_column1] = np.nan
+                    df4_column_list.append(df4_column1)
                     
             check_list1 = ['NAME','MAIL','GENDER','COLLEGE','WHATSAPP']
             for check_list1_name in check_list1:
@@ -318,31 +329,25 @@ if is_internet():
             
         df4.columns = ["Name", "Email", "Gender", "College Name", "WhatsApp No."] 
         
-          
+        #this list contains all days original names
+        reports_days_name_list = []  
         
         #for full.csv 
         dataframe_name = []  
-        for file_i in range(File_Total):
-            a = "data"+str(file_i)
-            dataframe_name.append(a)
             
-          
+        #Before updated sheet
+        before_updated_day = [] 
+        
+        
         prt_to_reg = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
           
-          
         t2 = pd.DataFrame(columns=['Name', 'Email', 'Gender', 'College Name', 'WhatsApp No.'])
+    
         
         
-        #Before updated sheet
-        before_updated_day = []  
-        for file_i in range(File_Total):
-            a = "day_"+str(file_i)
-            before_updated_day.append(a)
-        
-        logging.warning('before updated day list - %s',before_updated_day)  
-        
-    #Main for loop start from here making daywise csv files  
-        for file_index,file_name in enumerate(files_name):
+    #Main for loop start from here making daywise csv files
+        file_index = 0
+        for file_name in files_name: #main daywise for loop
             
               
             File_Name = file_name
@@ -350,13 +355,34 @@ if is_internet():
             file_number = File_Name[4]
             try:
                 df1 = pd.read_csv("{}".format(File_Name))
-                logging.warning('Day{} Participants data Shape - %s'.format(file_index),df1.shape)
                 df1 = df1[df1.columns.tolist()]
+                
             except:
                 print("Error 7:  Daywise file reading Problem occure")
                 sys.exit(1)  
             
+            if len(df1.columns.tolist()) != 3:
+                continue
+           
             df1.columns = ["Name", "Email", "Time"]
+            logging.warning('Day{} Participants data Shape - %s'.format(file_index),df1.shape)
+            
+            
+            #this for choosing real participants file where we will do work.
+            day_original_name_index = File_Name.index("participants") - 1
+            day_original_name = File_Name[:day_original_name_index]
+            reports_days_name_list.append(day_original_name)
+              
+            
+            #dataframe set by coosing files
+            dataframe_a = "data"+str(file_index)
+            dataframe_name.append(dataframe_a)
+            
+            
+            #Before updated sheet by choosing files
+            before_updated_day.append(day_original_name)
+            
+            
             
             prt_to_reg = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
             
@@ -393,33 +419,37 @@ if is_internet():
             
             prt_to_reg["Zoom id"] = np.nan
             
-            #Update sheet using master sheet (By Registered Email id)
-            Master_sheet_Email_list2 = Master_sheet["Email ID"].values.tolist()
-            df4_copy_email_list2 = df4_copy[df4_column_list[1]].values.tolist()
-            for df4_copy_email2_index,df4_copy_email2 in enumerate(df4_copy_email_list2):
-                for Master_sheet_Email_index,Master_sheet_Email in enumerate(Master_sheet_Email_list2):
-                    if str(df4_copy_email2).upper().strip() in str(Master_sheet_Email).upper().strip():
-                        if Master_sheet["Matched"][Master_sheet_Email_index] == 'TRUE':
-                            df4_copy.loc[df4_copy_email2_index,"Zoom id"] = Master_sheet["Zoom id"][Master_sheet_Email_index]
-                            df4_copy.loc[df4_copy_email2_index,"Matched"] = True
-                            df4_copy.loc[df4_copy_email2_index,"Zoom Name"] = Master_sheet["Zoom Name"][Master_sheet_Email_index]
+            
+            try:
+                #Update sheet using master sheet (By Registered Email id)
+                Master_sheet_Email_list2 = Master_sheet["Email ID"].values.tolist()
+                df4_copy_email_list2 = df4_copy[df4_column_list[1]].values.tolist()
+                for df4_copy_email2_index,df4_copy_email2 in enumerate(df4_copy_email_list2):
+                    for Master_sheet_Email_index,Master_sheet_Email in enumerate(Master_sheet_Email_list2):
+                        if str(df4_copy_email2).upper().strip() in str(Master_sheet_Email).upper().strip():
+                            if Master_sheet["Matched"][Master_sheet_Email_index] == 'TRUE':
+                                df4_copy.loc[df4_copy_email2_index,"Zoom id"] = Master_sheet["Zoom id"][Master_sheet_Email_index]
+                                df4_copy.loc[df4_copy_email2_index,"Matched"] = True
+                                df4_copy.loc[df4_copy_email2_index,"Zoom Name"] = Master_sheet["Zoom Name"][Master_sheet_Email_index]
+                                break
+        #                    else:
+        #                        df4_copy.loc[df4_copy_email2_index,"Matched"] = False
+        #                        break
+                
+                #Update sheet using master sheet (By Zoom Email id)
+                Master_sheet_zoom_Email_list2 = Master_sheet["Zoom id"].values.tolist()
+                df4_copy_email_list3 = df4_copy[df4_column_list[1]].values.tolist()
+                for df4_copy_email3_index,df4_copy_email3 in enumerate(df4_copy_email_list3):
+                    for Master_zoom_Email_index,Master_zoom_Email in enumerate(Master_sheet_zoom_Email_list2):
+                        if str(df4_copy_email3).upper().strip() in str(Master_zoom_Email).upper().strip():
+                            df4_copy.loc[df4_copy_email3_index,"Zoom id"] = Master_sheet["Zoom id"][Master_zoom_Email_index]
+                            df4_copy.loc[df4_copy_email3_index,"Matched"] = True
+                            df4_copy.loc[df4_copy_email3_index,"Zoom Name"] = Master_sheet["Zoom Name"][Master_zoom_Email_index]
                             break
-    #                    else:
-    #                        df4_copy.loc[df4_copy_email2_index,"Matched"] = False
-    #                        break
-            
-            #Update sheet using master sheet (By Zoom Email id)
-            Master_sheet_zoom_Email_list2 = Master_sheet["Zoom id"].values.tolist()
-            df4_copy_email_list3 = df4_copy[df4_column_list[1]].values.tolist()
-            for df4_copy_email3_index,df4_copy_email3 in enumerate(df4_copy_email_list3):
-                for Master_zoom_Email_index,Master_zoom_Email in enumerate(Master_sheet_zoom_Email_list2):
-                    if str(df4_copy_email3).upper().strip() in str(Master_zoom_Email).upper().strip():
-                        df4_copy.loc[df4_copy_email3_index,"Zoom id"] = Master_sheet["Zoom id"][Master_zoom_Email_index]
-                        df4_copy.loc[df4_copy_email3_index,"Matched"] = True
-                        df4_copy.loc[df4_copy_email3_index,"Zoom Name"] = Master_sheet["Zoom Name"][Master_zoom_Email_index]
-                        break
        
-            
+            except:
+                print("Error 8:  Comparision to Master sheet and inside Report csv Problem")
+                sys.exit(1) 
             
             
             zoom_list = df1['Name'].values.tolist()
@@ -476,69 +506,78 @@ if is_internet():
                 else:
                    suspence_store.append(zoom_index) 
                 
-            
+            try:
             #data checking from participants to registered.
-            for zoom_index, zoom_name in enumerate(zoom_list):
-                counter = 0
-                if "." in str(zoom_Email_list[zoom_index]):
-                    for data1_Email_index,data1_Email in enumerate(data1_Email_list):
-                        if str(zoom_Email_list[zoom_index]).upper().strip() == str(data1_Email).upper().strip():
-                            counter += 1
-                            zoom_name = zoom_name.split()
-                            zoom_name = " ".join(list(filter(lambda x : len(x)>2, zoom_name)))
-                            
-                            if data1_list_filter.count(zoom_name) > 1:
-                                suspence_store.append(zoom_index)
-                                break
-                            else:
-                                store.append(data1_Email_index)
-                                zoom_store.append(zoom_index)
-        #                        f["Zoom id"][zoom_index] = data1_Email
-        #                        df4_copy["Zoom id"][data1_Email_index] = data1_Email
-                                break
-                    if counter == 0:
-                        if str(zoom_Email_list[zoom_index]) in df4_copy['Zoom id'].values.tolist():
-                            df_copy_index = df4_copy['Zoom id'].values.tolist().index(str(zoom_Email_list[zoom_index]))
-                            store.append(df_copy_index)
-                            zoom_store.append(zoom_index)               
-                        else:
-                            zoom_name = zoom_name.split()
-                            zoom_name = " ".join(list(filter(lambda x : len(x)>2, zoom_name)))
-                            
-                            if data1_list_filter.count(zoom_name) > 1:
+                for zoom_index, zoom_name in enumerate(zoom_list):
+                    counter = 0
+                    if "." in str(zoom_Email_list[zoom_index]):
+                        for data1_Email_index,data1_Email in enumerate(data1_Email_list):
+                            if str(zoom_Email_list[zoom_index]).upper().strip() == str(data1_Email).upper().strip():
+                                counter += 1
+                                zoom_name = zoom_name.split()
+                                zoom_name = " ".join(list(filter(lambda x : len(x)>2, zoom_name)))
+                                
+                                if data1_list_filter.count(zoom_name) > 1:
                                     suspence_store.append(zoom_index)
-                                    
+                                    break
+                                else:
+                                    store.append(data1_Email_index)
+                                    zoom_store.append(zoom_index)
+            #                        f["Zoom id"][zoom_index] = data1_Email
+            #                        df4_copy["Zoom id"][data1_Email_index] = data1_Email
+                                    break
+                        if counter == 0:
+                            if str(zoom_Email_list[zoom_index]) in df4_copy['Zoom id'].values.tolist():
+                                df_copy_index = df4_copy['Zoom id'].values.tolist().index(str(zoom_Email_list[zoom_index]))
+                                store.append(df_copy_index)
+                                zoom_store.append(zoom_index)               
                             else:
-                                name_checking_func(zoom_name,zoom_index)
+                                zoom_name = zoom_name.split()
+                                zoom_name = " ".join(list(filter(lambda x : len(x)>2, zoom_name)))
                                 
-        
-                                
-                                
-                          
-                else:
-                    name_checking_func(zoom_name,zoom_index)
-    
+                                if data1_list_filter.count(zoom_name) > 1:
+                                        suspence_store.append(zoom_index)
+                                        
+                                else:
+                                    name_checking_func(zoom_name,zoom_index)
+                                    
+            
+                                    
+                                    
+                              
+                    else:
+                        name_checking_func(zoom_name,zoom_index)
+            
+            except:
+                print("Error 9:  Matching data Participants to Registration file issue.")
+                sys.exit(1)
+                
+                
         
             #If data is matched than student will get present. 
-            j = 0
-            for i in store:
-                while j < len(zoom_store):
-                    value = zoom_store[j]
-                    prt_to_reg = prt_to_reg.append({'Zoom Name': df1['Name'][value], 
-                                                    'Email': df1['Email'][value], 
-                                                    'Time': df1['Time'][value],
-                                                    'Registered Name': df4['Name'][i],
-                                                    'Gender': df4['Gender'][i],
-                                                    'College Name': df4['College Name'][i],
-                                                    'WhatsApp No.': df4['WhatsApp No.'][i],
-                                                    'Zoom id': df4['Email'][i]}, ignore_index=True)
+            
+            try:
+                j = 0
+                for i in store:
+                    while j < len(zoom_store):
+                        value = zoom_store[j]
+                        prt_to_reg = prt_to_reg.append({'Zoom Name': df1['Name'][value], 
+                                                        'Email': df1['Email'][value], 
+                                                        'Time': df1['Time'][value],
+                                                        'Registered Name': df4['Name'][i],
+                                                        'Gender': df4['Gender'][i],
+                                                        'College Name': df4['College Name'][i],
+                                                        'WhatsApp No.': df4['WhatsApp No.'][i],
+                                                        'Zoom id': df4['Email'][i]}, ignore_index=True)
+                        
+                        j += 1
+                        break
                     
-                    j += 1
-                    break
-                
-            prt_to_reg.drop_duplicates(subset='Email',keep='last', inplace=True)
+                prt_to_reg.drop_duplicates(subset='Email',keep='last', inplace=True)
             
-            
+            except:
+                print("Error 10:  Something is wrong when we are fill the present data.")
+                sys.exit(1)
             
             
             
@@ -557,24 +596,26 @@ if is_internet():
             
           
             
-        
+            try:
             
-            suspence_t1 = []
-            
-            for index in suspence_store:
-                suspence_t1.append(df1.iloc[index,])
-            
-            suspence_t1 = pd.DataFrame(suspence_t1)
-            suspence_t1 = suspence_t1.sort_values("Time", ascending = False)
-            suspence_t1.reset_index(inplace = True, drop = True)
-            
-            #work for all suspence data
-            if  file_index == 0:
-                t1 = suspence_t1
-            else:
-                t1 = t1.merge(right = suspence_t1, how = "outer", on = "Email", suffixes=('', '_Reg{}'.format(file_index)) )
-            
-            
+                suspence_t1 = []
+                
+                for index in suspence_store:
+                    suspence_t1.append(df1.iloc[index,])
+                
+                suspence_t1 = pd.DataFrame(suspence_t1)
+                suspence_t1 = suspence_t1.sort_values("Time", ascending = False)
+                suspence_t1.reset_index(inplace = True, drop = True)
+                
+                #work for all suspence data
+                if  file_index == 0:
+                    t1 = suspence_t1
+                else:
+                    t1 = t1.merge(right = suspence_t1, how = "outer", on = "Email", suffixes=('', '_Reg{}'.format(file_index)) )
+                
+            except:
+                print("Error 11:  suspense t1 by participants to registration.")
+                sys.exit(1)
             
             #===============================================================
             
@@ -711,16 +752,16 @@ if is_internet():
             logging.warning('Day{} shape(present & suspence) - %s'.format(file_index),result.shape)
             #Now we will just store the result data in --> before_updated_day
             before_updated_day[file_index] = result
-            
+            file_index += 1
          
                  
            
         df4_copy["Matched"] = df4_copy["Matched"].fillna(False)
             
-            
+        
         #Now code for creating daywise file and seprate the absent section
             
-        for day_index in range(File_Total):
+        for day_index in range(len(reports_days_name_list)):
             null_index1 = before_updated_day[day_index][before_updated_day[day_index]["Zoom Name"].isnull()].index.tolist()[0]
             null_index2 = before_updated_day[day_index][before_updated_day[day_index]["Zoom Name"].isnull()].index.tolist()[1]
             
@@ -729,6 +770,9 @@ if is_internet():
                 present_data = before_updated_day[day_index].iloc[:null_index1,]
                 present_data.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
                 present_data.reset_index(inplace = True, drop = True)
+                for emp_email_index in range(len(present_data)):
+                    if type(present_data["Email"][emp_email_index]) == float:
+                        present_data["Email"][emp_email_index] = present_data["Zoom id"][emp_email_index]
                 present_data = present_data.append(pd.Series("nan"), ignore_index=True)
                 present_data = present_data.drop([0],axis=1) 
                 new_row={"Zoom Name":"Suspense","Email":"Data"}
@@ -817,9 +861,10 @@ if is_internet():
             daywise_result.reset_index(inplace = True, drop = True)
         
             #this number will print on daywise file name
-            daynumber = (int(file_number) - int(File_Total)) + (day_index+1)
             
-            daywise_result.to_csv("Reports/Day{}.csv".format(daynumber), index = False)
+#            daynumber = (int(file_number) - int(File_Total)) + (day_index+1)
+            
+            daywise_result.to_csv("Reports/{}.csv".format(reports_days_name_list[day_index]), index = False)
         
       
         
@@ -874,7 +919,7 @@ if is_internet():
         def days_count_func():
             day_count = ["Zoom Name","Email"]
             for day_index in range(len(t1_time_column)):
-                day_count.append("Day{}".format(day_index))
+                day_count.append("{}".format(reports_days_name_list[day_index]))
             
             day_count.append("Total")
             return day_count
@@ -884,9 +929,11 @@ if is_internet():
         
         t1["Total"] = 0
         for daywise_index in range(len(t1_time_column)):
-            t1["Total"] += t1["Day{}".format(daywise_index)]
+            t1["Total"] += t1["{}".format(reports_days_name_list[daywise_index])]
         
         t1 = t1.sort_values("Total", ascending = False)
+        t1.dropna(subset=['Email'],inplace=True)
+        t1.reset_index(inplace = True, drop = True)
         
         
         t2.drop_duplicates(subset=["Email"], keep='first', inplace=True)
@@ -933,7 +980,7 @@ if is_internet():
         
         def Dates_indexing():
             ats = []
-            for at_index in range(1,(File_Total+1)):
+            for at_index in range(1,(len(reports_days_name_list)+1)):
                 b = "at" + str(at_index)
                 ats.append(b)
             return ats
@@ -941,7 +988,7 @@ if is_internet():
         ats = Dates_indexing()
             
         index = 0
-        while index < File_Total:
+        while index < len(reports_days_name_list):
             ats[index] = [0] * len(emails)
             index += 1
         
@@ -952,7 +999,7 @@ if is_internet():
         zoom_dates = zoom["Date"].tolist()
         
         
-        for dates_index in range(1,(File_Total+1)):
+        for dates_index in range(1,(len(reports_days_name_list)+1)):
             for index,name in enumerate(zoom_names): 
                 for zindex, zname in enumerate(zoom_names):
                     if str(name) in str(zname):
@@ -968,7 +1015,7 @@ if is_internet():
         
         for index,name in enumerate(zoom_names):
               index_at = 0
-              while index_at < File_Total:
+              while index_at < len(reports_days_name_list):
                    if index_at == 0:
                         total[index] = ats[index_at][index] 
                    elif index_at > 0:
@@ -979,7 +1026,7 @@ if is_internet():
         
         ats.insert(0, zoom_names)
         ats.insert(1, emails)
-        cal = 2 + File_Total
+        cal = 2 + len(reports_days_name_list)
         ats.insert(cal, total)
         #z is a dataframe which have our compelete days total time (we need to transpose of dataset here)
         z = pd.DataFrame(ats)
@@ -996,8 +1043,8 @@ if is_internet():
         #z dataframe not have column names so we will give here names
         def z_columns_list():
             column_list = ["Zoom Name", "Email"]
-            for column_list_index in range(File_Total):
-                day_name = "Day{}".format(column_list_index)
+            for column_list_index in range(len(reports_days_name_list)):
+                day_name = "{}".format(reports_days_name_list[column_list_index])
                 column_list.append(day_name)
             
             column_list.append("Total")
@@ -1019,8 +1066,8 @@ if is_internet():
         
         def final_dataframe_column_list():
             final_list = ['Name', 'Gender', 'College Name', 'WhatsApp No.','Zoom Name', 'Zoom id']
-            for final_list_index in range(File_Total):
-                day_name = "Day{}".format(final_list_index)
+            for final_list_index in range(len(reports_days_name_list)):
+                day_name = "{}".format(reports_days_name_list[final_list_index])
                 final_list.append(day_name)
             
             final_list.append("Total")
@@ -1064,8 +1111,8 @@ if is_internet():
         
         def Atleast_one_day_column_list():
             Atleast_one_day_list = ['{}'.format(df4_column_list[0]), 'Gender', 'College Name', 'WhatsApp No.','Zoom Name', 'Email']
-            for Atleast_list_index in range(File_Total):
-                At_day_name = "Day{}".format(Atleast_list_index)
+            for Atleast_list_index in range(len(reports_days_name_list)):
+                At_day_name = "{}".format(reports_days_name_list[Atleast_list_index])
                 Atleast_one_day_list.append(At_day_name)
             
             Atleast_one_day_list.append("Total")
@@ -1102,8 +1149,8 @@ if is_internet():
               
         #code for everyday present who are register and join every day  
         def everyday_present(final):   
-            for last_index in range(File_Total):
-                final = final[(final["Day{}".format(last_index)] > 0)]
+            for last_index in range(len(reports_days_name_list)):
+                final = final[(final["{}".format(reports_days_name_list[last_index])] > 0)]
                 
             final.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
             final.reset_index(inplace = True, drop = True)    
@@ -1144,8 +1191,8 @@ if is_internet():
         #choose the column names according to our need
         def not_present_column_list():
             final_work_list = ['Name_Reg','Gender_Reg', 'College Name_Reg', 'WhatsApp No._Reg','Zoom Name','Zoom id']
-            for final_list_index in range(File_Total):
-                final_day_name = "Day{}".format(final_list_index)
+            for final_list_index in range(len(reports_days_name_list)):
+                final_day_name = "{}".format(reports_days_name_list[final_list_index])
                 final_work_list.append(final_day_name)
             final_work_list.append("Total")
             return final_work_list
@@ -1223,7 +1270,7 @@ if is_internet():
                             Master_columns_list.append(np.nan)
                     
                     check_list_ = ["TIMESTAMP","UTR","TITLE","NAME","DESIGNATION",'MAIL','MOBILE','GENDER','COLLEGE',
-                                  "WHATSAPP","DEPARTMENT","SEM","CITY","STATUS",'MODE','PAYEE','CALLING',
+                                  "WHATSAPP","DEPARTMENT","SEM","CITY","STATE","STATUS",'MODE','PAYEE','CALLING',
                                   'ZOOM ID','MATCHED','ZOOM NAME']
                     for check_list_name in check_list_:
                         make_Master_columns_list(check_list_name)
@@ -1241,13 +1288,14 @@ if is_internet():
                                   'Branch/ Department' : Master_columns_list[10],
                                   'Current Semester' : Master_columns_list[11],
                                   'College City' : Master_columns_list[12],
-                                  'Status' : Master_columns_list[13],
-                                  'Mode' : Master_columns_list[14],
-                                  'Payee Name/New ID' : Master_columns_list[15],
-                                  'Calling Responses' : Master_columns_list[16],
-                                  'Zoom id' : Master_columns_list[17],
-                                  'Matched' : Master_columns_list[18],
-                                  'Zoom Name' : Master_columns_list[19],
+                                  'State' : Master_columns_list[13],
+                                  'Status' : Master_columns_list[14],
+                                  'Mode' : Master_columns_list[15],
+                                  'Payee Name/New ID' : Master_columns_list[16],
+                                  'Calling Responses' : Master_columns_list[17],
+                                  'Zoom id' : Master_columns_list[18],
+                                  'Matched' : Master_columns_list[19],
+                                  'Zoom Name' : Master_columns_list[20],
                                   'Meeting ID' : ''
                                   }
                     Master_sheet = Master_sheet.append(dictionary, ignore_index=True)
@@ -1264,7 +1312,7 @@ if is_internet():
                             Master_columns_list.append(np.nan)
                     
                     check_list_ = ["TIMESTAMP","UTR","TITLE","NAME","DESIGNATION",'MAIL','MOBILE','GENDER','COLLEGE',
-                                  "WHATSAPP","DEPARTMENT","SEM","CITY","STATUS",'MODE','PAYEE','CALLING',
+                                  "WHATSAPP","DEPARTMENT","SEM","CITY","STATE","STATUS",'MODE','PAYEE','CALLING',
                                   'ZOOM ID','MATCHED','ZOOM NAME']
                     for check_list_name in check_list_:
                         make_Master_columns_list(check_list_name)
@@ -1282,12 +1330,13 @@ if is_internet():
                                   'Branch/ Department' : Master_columns_list[10],
                                   'Current Semester' : Master_columns_list[11],
                                   'College City' : Master_columns_list[12],
-                                  'Status' : Master_columns_list[13],
-                                  'Mode' : Master_columns_list[14],
-                                  'Payee Name/New ID' : Master_columns_list[15],
-                                  'Calling Responses' : Master_columns_list[16],
+                                  'State' : Master_columns_list[13],
+                                  'Status' : Master_columns_list[14],
+                                  'Mode' : Master_columns_list[15],
+                                  'Payee Name/New ID' : Master_columns_list[16],
+                                  'Calling Responses' : Master_columns_list[17],
                                   'Zoom id' : '',
-                                  'Matched' : Master_columns_list[18],
+                                  'Matched' : Master_columns_list[19],
                                   'Zoom Name' : '',
                                   'Meeting ID' : ''
                                   }
@@ -1391,6 +1440,7 @@ if is_internet():
             import dash_bootstrap_components as dbc
             import webbrowser
             from threading import Timer
+            import math
             
             #open browser automatically
             def open_browser():
@@ -1442,8 +1492,8 @@ if is_internet():
             
             #Daylist for Dropdown
             list1 = []
-            for d_index in range(File_Total):
-                day_number = (int(file_number) - int(File_Total)) + (d_index+1)
+            for d_index in range(len(reports_days_name_list)):
+                day_number = (int(file_number) - int(len(reports_days_name_list))) + (d_index+1)
                 list1.append("Day{}".format(day_number))
             
             
@@ -1479,15 +1529,8 @@ if is_internet():
             
             
             
-            
-            #Not Any day present student Table
             Not_Present_any_col_list = ['Name','Email','Gender','College Name','WhatsApp No.']
             
-            Not_Present_any = final_work.copy()
-            Not_dat_index = Not_Present_any[(Not_Present_any["Name"].isnull())].index[0]
-            Not_Present_any = Not_Present_any.iloc[:Not_dat_index,]
-            not_present_count = len(Not_Present_any)
-            Not_Present_any = Not_Present_any[Not_Present_any_col_list]
             
             
             
@@ -1496,22 +1539,47 @@ if is_internet():
             
             #Atleast One Day Present Students
             Atleast_present_col_list = Atleast_one_day.columns.tolist()
-            
             Atleast_one_day_copy = Atleast_one_day.copy()
             Atleast_one_day_index = Atleast_one_day[(Atleast_one_day["Email"].isnull())].index[0]
             Atleast_one_day_copy = Atleast_one_day_copy.iloc[ : Atleast_one_day_index,]
-            Atleast_present_count = len(Atleast_one_day_copy)
+         
             
             
             
             
-            #Suspence Data Table of All Day
-            Atleast_present_col_list = Atleast_one_day.columns.tolist()
-            All_suspence_data = Atleast_one_day.copy()
-            All_suspence_data = All_suspence_data.iloc[Atleast_one_day_index+2 : ,]
-            Suspence_present_count = len(All_suspence_data)
             
             
+            
+            
+            
+            #Consolidated graph which will be permanent below which tells us atleast one day graph
+            consolidated_dataframe2 = df4.copy()
+            consolidated_dataframe2 = consolidated_dataframe2.rename(columns={'Zoom id': 'Email'})
+            consolidated_dataframe2.drop_duplicates(subset=["Email"], keep='first', inplace=True)
+            consolidated_dataframe2.reset_index(inplace = True, drop = True) 
+            consolidated_count = len(consolidated_dataframe2)
+            consolidated_dataframe3 = pd.merge(consolidated_dataframe2, Atleast_one_day_copy, how='left', on=['Email'])
+            consolidated_dataframe3.drop(consolidated_dataframe3.iloc[:, 5:10], inplace = True, axis = 1)
+            
+            consolidated_dataframe3 = consolidated_dataframe3.rename(columns={'Name_x': 'Name',
+                                                                              'Gender_x': 'Gender',
+                                                                              'College Name_x': 'College Name',
+                                                                              'WhatsApp No._x':'WhatsApp No.'})
+            consolidated_dataframe3.rename(columns={'Total':'Total Time(Minutes)','Name':'Registered Name'}, inplace = True )
+            consolidated_dataframe3_day_list = consolidated_dataframe3.columns.tolist()[5:]
+            for consolidated_dataframe3_day_list_name in consolidated_dataframe3_day_list:
+                    consolidated_dataframe3[consolidated_dataframe3_day_list_name].fillna(0, inplace=True)
+            consolidated_dataframe3 = consolidated_dataframe3.sort_values("Total Time(Minutes)", ascending = False)
+            consolidated_dataframe3.reset_index(inplace = True, drop = True)
+            
+            consolidated_data_list1 = ['Registered Name','Gender','College Name','Email','WhatsApp No.']
+            consolidated_data_list = consolidated_data_list1 + consolidated_dataframe3_day_list
+            
+            consolidated_fig = px.bar(consolidated_dataframe3, y ='Total Time(Minutes)',x = 'Registered Name',
+                            text='Total Time(Minutes)',
+                            hover_data=consolidated_data_list,
+                            height=450,
+                         )
             
             
             
@@ -1524,6 +1592,8 @@ if is_internet():
             
             #It will show the meeting on title
             app.title = str(Meeting_id)
+            
+            PAGE_SIZE = 10
             
             app.layout = html.Div(
             html.Div([
@@ -1591,8 +1661,8 @@ if is_internet():
                 #dropdown (Days)
                 dbc.Container(
                 html.Div([dcc.Dropdown(id='dd',
-                    options=[{'label': c , 'value': c} for c in list1],
-                    value='Day1')],
+                    options=[{'label': c , 'value': c} for c in reports_days_name_list],
+                    value=reports_days_name_list[0])],
                 style={
                         'width':'40%',
                         'padding':40,
@@ -1609,7 +1679,7 @@ if is_internet():
                         html.Div(
                                     [
                                         html.H3(
-                                            children='Registered & Participants',
+                                            children='Registered & Present Students',
                                             style={
                                                 'textAlign': 'Right',
                                                 'color': colors['color2'],
@@ -1686,7 +1756,7 @@ if is_internet():
                         html.Div(
                                     [
                                         html.H3(
-                                            children='Absent Students Table',
+                                            children='Registered & Absent Students Table',
                                             style={
                                                 'textAlign': 'Right',
                                                 'color': colors['color2'],
@@ -1767,6 +1837,9 @@ if is_internet():
                             columns=[
                                 {"name": i, "id": i} for i in list2],
                            css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
+                           page_current=0,
+                           page_size=PAGE_SIZE,
+                           page_action='custom',
                            style_cell={'whiteSpace': 'normal',
                                        'height': 'auto',
                                        'textAlign': 'left',
@@ -1791,12 +1864,12 @@ if is_internet():
                                     
                                     
                                     
-                #Suspence Students
+                #Suspense Students
                  html.Div([
                         html.Div(
                                     [
                                         html.H3(
-                                            children='Suspence Students(Daywise)',
+                                            children='Suspense Students(Daywise)',
                                             style={
                                                 'textAlign': 'Right',
                                                 'color': colors['color2'],
@@ -1876,6 +1949,9 @@ if is_internet():
                             columns=[
                                 {"name": i, "id": i} for i in Suspence_day_list],
                            css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
+                           page_current = 0,
+                           page_size = PAGE_SIZE,
+                           page_action = 'custom',
                            style_cell={'whiteSpace': 'normal',
                                        'height': 'auto',
                                        'textAlign': 'left',
@@ -2012,7 +2088,7 @@ if is_internet():
                         html.Div(
                                     [
                                         html.H3(
-                                            children = not_present_count,
+                                            id = 'not_present_count',
                                             style={
                                                 'textAlign': 'Left',
                                                 'color': colors['color2'],
@@ -2036,10 +2112,13 @@ if is_internet():
                         [
                                 
                             dash_table.DataTable(
-                            data=Not_Present_any.to_dict('records'),
+                            id='not_present_table',
                             columns=[
                                 {"name": i, "id": i} for i in Not_Present_any_col_list], 
-                           css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
+                           css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
+                           page_current=0,
+                           page_size=PAGE_SIZE,
+                           page_action='custom',
                            style_cell={'textAlign': 'left'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
@@ -2105,7 +2184,7 @@ if is_internet():
                         html.Div(
                                     [
                                         html.H3(
-                                            children = Atleast_present_count,
+                                            id = 'Atleast_present_count',
                                             style={
                                                 'textAlign': 'Left',
                                                 'color': colors['color2'],
@@ -2130,25 +2209,33 @@ if is_internet():
                         [
                                 
                             dash_table.DataTable(
-                            data=Atleast_one_day_copy.to_dict('records'),
+                            id='Atleast_present_Data',
                             columns=[
                                 {"name": i, "id": i} for i in Atleast_present_col_list], 
-                           css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
-                           style_cell={'textAlign': 'left'}, 
+                           css=[{'selector': 'table', 'rule': 'table-layout: fixed'}], 
+                           page_current=0,
+                           page_size=PAGE_SIZE,
+                           page_action='custom',
+                           style_table={
+                        'overflowX': 'auto'},
+                           style_cell={'height': 'auto',
+                                       'textAlign': 'left',
+                                       'minWidth': '100px', 'width': '140px', 'maxWidth': '180px',
+                                       'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
                                        'margin-right':'20px',
                                        'whiteSpace': 'normal',
                                         'height': 'auto',
                                         'lineHeight': '15px'},
-                            style_cell_conditional=[
-                                        {'if': {'column_id': 'College Name'},
-                                              'width': '15%'},
-                                        {'if': {'column_id': 'Email'},
-                                               'width': '18%'},
-                                        {'if': {'column_id': 'WhatsApp No.'},
-                                               'width': '8%'},
-                            ],
+#                            style_cell_conditional=[
+#                                        {'if': {'column_id': 'College Name'},
+#                                              'width': '15%'},
+#                                        {'if': {'column_id': 'Email'},
+#                                               'width': '18%'},
+#                                        {'if': {'column_id': 'WhatsApp No.'},
+#                                               'width': '8%'},
+#                            ],
                             style_header={
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
@@ -2170,7 +2257,7 @@ if is_internet():
                         html.Div(
                                     [
                                         html.H3(
-                                            children='All Suspence Data Table',
+                                            children='All Suspense Data Table',
                                             style={
                                                 'textAlign': 'Right',
                                                 'color': colors['color2'],
@@ -2207,7 +2294,7 @@ if is_internet():
                         html.Div(
                                     [
                                         html.H3(
-                                            children = Suspence_present_count,
+                                            id = 'Suspence_present_count',
                                             style={
                                                 'textAlign': 'Left',
                                                 'color': colors['color2'],
@@ -2232,21 +2319,28 @@ if is_internet():
                         [
                                 
                             dash_table.DataTable(
-                            data=All_suspence_data.to_dict('records'),
+                            id='Suspence_present_data',
                             columns=[
                                 {"name": i, "id": i} for i in Atleast_present_col_list], 
-                           css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],     
-                           style_cell={'textAlign': 'left'}, 
+                           css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
+                           page_current=0,
+                           page_size=PAGE_SIZE,
+                           page_action='custom',
+                           style_table={'overflowX': 'auto'},
+                           style_cell={'height': 'auto',
+                                       'textAlign': 'left',
+                                       'minWidth': '100px', 'width': '140px', 'maxWidth': '180px',
+                                       'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
                                        'margin-right':'20px',
                                        'whiteSpace': 'normal',
                                         'height': 'auto',
                                         'lineHeight': '15px'},
-                            style_cell_conditional=[
-                                        {'if': {'column_id': 'Email'},
-                                               'width': '18%'},
-                            ],
+#                            style_cell_conditional=[
+#                                        {'if': {'column_id': 'Email'},
+#                                               'width': '18%'},
+#                            ],
                             style_header={
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
@@ -2262,7 +2356,77 @@ if is_internet():
                           
                  
                     
-                 #footer part
+            
+            
+            #Consoleted final graph 
+                 html.Div([
+                        html.Div(
+                                    [
+                                        html.H3(
+                                            children='Consolidated Analysis',
+                                            style={
+                                                'textAlign': 'Right',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'8px',
+                                                'margin-top':'70px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                        ],className='seven columns',
+                                    style={'padding-top': '30px'}
+                        ),
+                       html.Div(
+                                    [
+                                        html.H3(
+                                            children='Count: ',
+                                            style={
+                                                'textAlign': 'Right',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'8px',
+                                                'margin-top':'70px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                    ],
+                                    className='three columns',
+                                    style={'padding-top': '30px'}
+                                ),
+                        html.Div(
+                                    [
+                                        html.H3(
+                                            children = consolidated_count,
+                                            style={
+                                                'textAlign': 'Left',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'8px',
+                                                'margin-top':'70px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                    ],
+                                    className='two columns',
+                                    style={'padding-top': '30px'}
+                                )
+                    ],className = 'row'
+                ),
+                                    
+                
+                #graph4           
+                dcc.Graph(figure=consolidated_fig),
+                
+
+
+
+               #footer part
                   html.H3(
                     children='Footer Section',
                     style={
@@ -2277,7 +2441,8 @@ if is_internet():
                         
                     }
                 ),
-                                    
+                  
+                  
             ]),
         
             ])
@@ -2327,12 +2492,15 @@ if is_internet():
             
             
             
-            #Daywise student present Student Table
+            #Daywise student Absent Student Table
             @app.callback([dash.dependencies.Output('datatable-paging','data'),
-                           dash.dependencies.Output('check_count_absent','children')],
-                           [dash.dependencies.Input('dd','value')])
+                           dash.dependencies.Output('check_count_absent','children'),
+                           dash.dependencies.Output('datatable-paging','page_count')],
+                           [dash.dependencies.Input('dd','value'),
+                            dash.dependencies.Input('datatable-paging', "page_current"),
+                            dash.dependencies.Input('datatable-paging', "page_size")])
             
-            def update_fig(value):
+            def update_fig(value,page_current,page_size):
                 try:
                     dff = pd.read_csv("Reports/{}.csv".format(value))
                     b = dff[(dff["Email"].isnull())].index[1]
@@ -2343,10 +2511,11 @@ if is_internet():
                         dff_list.append(dff_row)
                     dff = pd.concat(dff_list)
                     count = len(dff)
+                    page_count_value = math.ceil(len(dff)/10)
                     dff = dff[df4_column_list + ['Zoom Name','Zoom id']]
                     dff.columns = ["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id']
-                    data=dff.to_dict('records')
-                    return data,count
+                    data=dff.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                    return data,count,page_count_value
                           
             
                 except:
@@ -2357,23 +2526,111 @@ if is_internet():
             
             #Daywise Suspense Data Table
             @app.callback([dash.dependencies.Output('suspence_daywise','data'),
-                           dash.dependencies.Output('check_count_suspence','children')],
-                          [dash.dependencies.Input('dd','value')])
+                           dash.dependencies.Output('check_count_suspence','children'),
+                           dash.dependencies.Output('suspence_daywise','page_count')],
+                          [dash.dependencies.Input('dd','value'),
+                           dash.dependencies.Input('suspence_daywise', "page_current"),
+                           dash.dependencies.Input('suspence_daywise', "page_size")])
             
-            def update_fig(value):
+            def update_fig(value,page_current,page_size):
                 try:
                     dff = pd.read_csv("Reports/{}.csv".format(value))
                     a = dff[(dff["Email"].isnull())].index[0]
                     b = dff[(dff["Email"].isnull())].index[1]
                     dff = dff.iloc[a+2:b,]
                     count = len(dff)
-                    data=dff.to_dict('records')
-                    return data,count
+                    page_count_value = math.ceil(len(dff)/10)
+                    data=dff.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                    return data,count,page_count_value
                           
             
                 except:
                     return html.Div(['There was an error processing this file.'])
                 
+                
+             
+            #not present any day table
+            @app.callback([dash.dependencies.Output('not_present_table','data'),
+                           dash.dependencies.Output('not_present_count','children'),
+                           dash.dependencies.Output('not_present_table','page_count')],
+                          [dash.dependencies.Input('not_present_table', "page_current"),
+                           dash.dependencies.Input('not_present_table', "page_size")])
+
+            def update_fig(page_current,page_size):
+                try:
+                    #Not Any day present student Table
+                    Not_Present_any_col_list = ['Name','Email','Gender','College Name','WhatsApp No.']
+                    
+                    Not_Present_any = pd.read_csv("Reports/Not_present_any_day.csv")
+                    Not_dat_index = Not_Present_any[(Not_Present_any["Name"].isnull())].index[0]
+                    Not_Present_any = Not_Present_any.iloc[:Not_dat_index,]
+                    count = len(Not_Present_any)
+                    page_count_value = math.ceil(len(Not_Present_any)/10),
+                    Not_Present_any = Not_Present_any[Not_Present_any_col_list]
+                    data=Not_Present_any.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                    return data,count,page_count_value
+                          
+            
+                except:
+                    return html.Div(['There was an error processing this file.']) 
+                
+               
+                
+                
+                
+            #Atleast present data table
+            @app.callback([dash.dependencies.Output('Atleast_present_Data','data'),
+                           dash.dependencies.Output('Atleast_present_count','children'),
+                           dash.dependencies.Output('Atleast_present_Data','page_count')],
+                          [dash.dependencies.Input('Atleast_present_Data', "page_current"),
+                           dash.dependencies.Input('Atleast_present_Data', "page_size")])
+
+            def update_fig(page_current,page_size):
+                try:
+                    #Atleast one present student Table
+                    Atleast_one_day_copy = pd.read_csv("Reports/Atleast_one_day_present.csv")
+                    Atleast_present_col_list = Atleast_one_day_copy.columns.tolist()
+                    Atleast_one_day_index = Atleast_one_day_copy[(Atleast_one_day_copy["Email"].isnull())].index[0]
+                    Atleast_one_day_copy = Atleast_one_day_copy.iloc[ : Atleast_one_day_index,]
+                    count = len(Atleast_one_day_copy)
+                    page_count_value = math.ceil(len(Atleast_one_day_copy)/10),
+                    Atleast_one_day_copy = Atleast_one_day_copy[Atleast_present_col_list]
+                    data=Atleast_one_day_copy.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                    return data,count,page_count_value
+                          
+            
+                except:
+                    return html.Div(['There was an error processing this file.'])
+                
+                
+                
+                
+                
+            
+            #All day suspence table
+            @app.callback([dash.dependencies.Output('Suspence_present_data','data'),
+                           dash.dependencies.Output('Suspence_present_count','children'),
+                           dash.dependencies.Output('Suspence_present_data','page_count')],
+                          [dash.dependencies.Input('Suspence_present_data', "page_current"),
+                           dash.dependencies.Input('Suspence_present_data', "page_size")])
+
+            def update_fig(page_current,page_size):
+                try:
+                    #Atleast one present student Table
+                    All_suspence_data = pd.read_csv("Reports/Atleast_one_day_present.csv")
+#                    All_suspence_data_col_list = All_suspence_data.columns.tolist()
+                    Atleast_one_day_index = All_suspence_data[(All_suspence_data["Email"].isnull())].index[0]
+                    All_suspence_data = All_suspence_data.iloc[Atleast_one_day_index+2 : ,]
+                    count = len(All_suspence_data)
+                    page_count_value = math.ceil(len(All_suspence_data)/10),
+                    
+#                   Atleast_one_day_copy = Atleast_one_day_copy[Atleast_present_col_list]
+                    data=All_suspence_data.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                    return data,count,page_count_value
+                          
+            
+                except:
+                    return html.Div(['There was an error processing this file.'])
                 
                 
                 
