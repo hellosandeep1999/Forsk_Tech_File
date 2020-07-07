@@ -63,7 +63,7 @@ if is_internet():
     try:
         #define credentials and scope of Google sheets API for our script
         SCOPES = ["https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
-        credentials = Credentials.from_service_account_file('assets/Creds.json', scopes=SCOPES)
+        credentials = Credentials.from_service_account_file('Creds.json', scopes=SCOPES)
         client = gspread.authorize(credentials)
     except FileNotFoundError as msg1:
         print("Error 2",msg1)
@@ -638,112 +638,122 @@ if is_internet():
             zoom_list_filter = list(map(lambda x: " ".join(x),zoom_list_))
             
             
+            try:
             
-            
-            suspence_store_t2 = []
-            
-            def name_cheking_t2(data1_name,name_cheking_t2):
-                data1_name = data1_name.split()
-                data1_name = " ".join(list(filter(lambda x : len(x)>2, data1_name)))
-                if zoom_list_filter.count(data1_name) > 1:
-                    suspence_store_t2.append(data1_index)
-                        
-                else:
-                    name = data1_name.split()
-                    set1 = []
-                    set2 = []
-                    n = 0
-                    while n < len(name):
-                        if len(name[n]) > 2:
-                            for zoom_index, zoom_name in enumerate(zoom_list):
-                                zoom_name = zoom_name.split() 
-                                if name[-1] in zoom_name:
-                                    set2.append(zoom_index)
-                                if name[n] in zoom_name:
-                                    set1.append(zoom_index)
-                            break
-                        else:
-                            n += 1
-                    set3 = set(set1)
-                    set4 = set(set2)
-                    set_intersection = set3.intersection(set4)
-                    
-                    if len(set_intersection) > 0:
-                        pass
-    
-                    else:
-                       suspence_store_t2.append(data1_index) 
-                               
-            def data1_name_func(data1_name):
-                data1_name = data1_name.split()
-                data1_name = " ".join(list(filter(lambda x : len(x)>2, data1_name)))
-                return data1_name
-            
-            for data1_index, data1_name in enumerate(data1_list):
-                if "." in str(data1_Email_list[data1_index]):
-                    for zoom_Email_index,zoom_Email in enumerate(zoom_Email_list):
-                        if str(data1_Email_list[data1_index]).upper().strip() == str(zoom_Email).upper().strip():
-                            data1_name = data1_name_func(data1_name)
+                suspence_store_t2 = []
+                
+                def name_cheking_t2(data1_name,name_cheking_t2):
+                    data1_name = data1_name.split()
+                    data1_name = " ".join(list(filter(lambda x : len(x)>2, data1_name)))
+                    if zoom_list_filter.count(data1_name) > 1:
+                        suspence_store_t2.append(data1_index)
                             
-                            if zoom_list_filter.count(data1_name) > 1:
-                                suspence_store_t2.append(data1_index)
+                    else:
+                        name = data1_name.split()
+                        set1 = []
+                        set2 = []
+                        n = 0
+                        while n < len(name):
+                            if len(name[n]) > 2:
+                                for zoom_index, zoom_name in enumerate(zoom_list):
+                                    zoom_name = zoom_name.split() 
+                                    if name[-1] in zoom_name:
+                                        set2.append(zoom_index)
+                                    if name[n] in zoom_name:
+                                        set1.append(zoom_index)
                                 break
                             else:
-    
-                                break
-                                  
-                    else:
-                        suspence_store_t2.append(data1_index) 
+                                n += 1
+                        set3 = set(set1)
+                        set4 = set(set2)
+                        set_intersection = set3.intersection(set4)
                         
-                else:
-                    name_cheking_t2(data1_name,name_cheking_t2)
-            
-            
-            
-            
-            #making dataframe for t2
-            suspence_t2 = []
-            
-            for index in suspence_store_t2:
-                suspence_t2.append(df4.iloc[index,])
-            
-            suspence_t2 = pd.DataFrame(suspence_t2)
-            suspence_t2.reset_index(inplace = True, drop = True)  
-            
-            
-            
-            
+                        if len(set_intersection) > 0:
+                            pass
         
-            #daywise suspence data
-            def suspence_merge_data():
-                merge = pd.merge(suspence_t1, suspence_t2, how='outer', on='Email')
-                merge = merge[['Name_x', 'Email', 'Time', 'Name_y', 'Gender', 'College Name', 'WhatsApp No.']]
-                merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.']
-                merge["Zoom id"] = np.nan
-                return merge
-            
-        
-        
-        
-            #Daywise present data
-            def present_data(prt_to_reg):
-                prt_to_reg = prt_to_reg.sort_values("Time", ascending = False)
-                prt_to_reg.reset_index(inplace = True, drop = True) 
+                        else:
+                           suspence_store_t2.append(data1_index) 
+                                   
+                def data1_name_func(data1_name):
+                    data1_name = data1_name.split()
+                    data1_name = " ".join(list(filter(lambda x : len(x)>2, data1_name)))
+                    return data1_name
                 
-                prt_to_reg=prt_to_reg.append(pd.Series("nan"), ignore_index=True)
-                prt_to_reg=prt_to_reg.drop([0],axis=1) 
-                new_row={"Zoom Name":"Suspense","Email":"Data"}
-                prt_to_reg = prt_to_reg.append(new_row,ignore_index=True)   
-                return prt_to_reg
+                for data1_index, data1_name in enumerate(data1_list):
+                    if "." in str(data1_Email_list[data1_index]):
+                        for zoom_Email_index,zoom_Email in enumerate(zoom_Email_list):
+                            if str(data1_Email_list[data1_index]).upper().strip() == str(zoom_Email).upper().strip():
+                                data1_name = data1_name_func(data1_name)
+                                
+                                if zoom_list_filter.count(data1_name) > 1:
+                                    suspence_store_t2.append(data1_index)
+                                    break
+                                else:
+        
+                                    break
+                                      
+                        else:
+                            suspence_store_t2.append(data1_index) 
+                            
+                    else:
+                        name_cheking_t2(data1_name,name_cheking_t2)
+                
+                
+                
+                
+                #making dataframe for t2
+                suspence_t2 = []
+                
+                for index in suspence_store_t2:
+                    suspence_t2.append(df4.iloc[index,])
+                
+                suspence_t2 = pd.DataFrame(suspence_t2)
+                suspence_t2.reset_index(inplace = True, drop = True)  
+            
+            except:
+                print("Error 12:  suspense t2 by registration to participants to problem.")
+                sys.exit(1)
             
             
+            try:
+            #daywise suspence data
+                def suspence_merge_data():
+                    merge = pd.merge(suspence_t1, suspence_t2, how='outer', on='Email')
+                    merge = merge[['Name_x', 'Email', 'Time', 'Name_y', 'Gender', 'College Name', 'WhatsApp No.']]
+                    merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.']
+                    merge["Zoom id"] = np.nan
+                    return merge
             
+            except:
+                print("Error 13:  Union of both suspence t1 and suspence t2 part occure.")
+                sys.exit(1)
+        
+            try:
+            #Daywise present data
+                def present_data(prt_to_reg):
+                    prt_to_reg = prt_to_reg.sort_values("Time", ascending = False)
+                    prt_to_reg.reset_index(inplace = True, drop = True) 
+                    
+                    prt_to_reg=prt_to_reg.append(pd.Series("nan"), ignore_index=True)
+                    prt_to_reg=prt_to_reg.drop([0],axis=1) 
+                    new_row={"Zoom Name":"Suspense","Email":"Data"}
+                    prt_to_reg = prt_to_reg.append(new_row,ignore_index=True)   
+                    return prt_to_reg
+            except:
+                print("Error 14: taking Present data from daywise problem.")
+                sys.exit(1)
+            
+            
+            try:
             #for full.csv
-            my_copy = present_data(prt_to_reg)[:-2].copy()
-            dataframe_name[file_index] = my_copy
-            dataframe_name[file_index] = dataframe_name[file_index][["Zoom Name","Zoom id","Time"]]
-            dataframe_name[file_index].columns = ["Name", "Zoom id", "Time"]
-            dataframe_name[file_index].loc[:,"Date"] = file_index+1
+                my_copy = present_data(prt_to_reg)[:-2].copy()
+                dataframe_name[file_index] = my_copy
+                dataframe_name[file_index] = dataframe_name[file_index][["Zoom Name","Zoom id","Time"]]
+                dataframe_name[file_index].columns = ["Name", "Zoom id", "Time"]
+                dataframe_name[file_index].loc[:,"Date"] = file_index+1
+            except:
+                print("Error 15: taking Present data from daywise problem.")
+                sys.exit(1)
             
             
             frame=[present_data(prt_to_reg),suspence_merge_data()]
@@ -765,101 +775,115 @@ if is_internet():
             null_index1 = before_updated_day[day_index][before_updated_day[day_index]["Zoom Name"].isnull()].index.tolist()[0]
             null_index2 = before_updated_day[day_index][before_updated_day[day_index]["Zoom Name"].isnull()].index.tolist()[1]
             
+            try:
             #Present data
-            def only_present_data(day_index,null_index1):
-                present_data = before_updated_day[day_index].iloc[:null_index1,]
-                present_data.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
-                present_data.reset_index(inplace = True, drop = True)
-                for emp_email_index in range(len(present_data)):
-                    if type(present_data["Email"][emp_email_index]) == float:
-                        present_data["Email"][emp_email_index] = present_data["Zoom id"][emp_email_index]
-                present_data = present_data.append(pd.Series("nan"), ignore_index=True)
-                present_data = present_data.drop([0],axis=1) 
-                new_row={"Zoom Name":"Suspense","Email":"Data"}
-                present_data = present_data.append(new_row,ignore_index=True)
-                return present_data
-            present_data = only_present_data(day_index,null_index1)
+                def only_present_data(day_index,null_index1):
+                    present_data = before_updated_day[day_index].iloc[:null_index1,]
+                    present_data.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
+                    present_data.reset_index(inplace = True, drop = True)
+                    for emp_email_index in range(len(present_data)):
+                        if type(present_data["Email"][emp_email_index]) == float:
+                            present_data["Email"][emp_email_index] = present_data["Zoom id"][emp_email_index]
+                    present_data = present_data.append(pd.Series("nan"), ignore_index=True)
+                    present_data = present_data.drop([0],axis=1) 
+                    new_row={"Zoom Name":"Suspense","Email":"Data"}
+                    present_data = present_data.append(new_row,ignore_index=True)
+                    return present_data
+                present_data = only_present_data(day_index,null_index1)
             
+            except:
+                print("Error 16: Selecting all Present data problem.")
+                sys.exit(1)
             
             logging.warning('Day{} only present data shape- %s'.format(day_index),present_data.shape)
             
-            #unregistered section
-            t1_suspence = before_updated_day[day_index].iloc[null_index1+2 : null_index2,]
-            t1_suspence.dropna(subset=['Zoom Name', 'Email','Time'],inplace=True)
+            try:
+                #unregistered section
+                t1_suspence = before_updated_day[day_index].iloc[null_index1+2 : null_index2,]
+                t1_suspence.dropna(subset=['Zoom Name', 'Email','Time'],inplace=True)
+                
+                #with this data we will seprate absent data
+                t2_suspence = before_updated_day[day_index].iloc[null_index2 : ,]
+                
+                
+                df4_copy_Email_list = df4_copy[df4_column_list[1]].values.tolist()
+                t2_suspence_Email_list = t2_suspence['Email'].values.tolist() 
+                
+                t2_real_suspence = []
+                t2_absent = []
+                
+                for t2_suspence_index,t2_suspence_Email in enumerate(t2_suspence_Email_list):
+                    if str(t2_suspence_Email) not in present_data["Zoom id"].values.tolist():
+                        for df4_copy_index,df4_copy_Email in enumerate(df4_copy_Email_list):
+                            if t2_suspence_Email == df4_copy_Email:
+                                if df4_copy["Matched"][df4_copy_index] == True:
+                                    t2_absent.append(t2_suspence.iloc[t2_suspence_index,])
+                                else:
+                                    t2_real_suspence.append(t2_suspence.iloc[t2_suspence_index,])
             
-            #with this data we will seprate absent data
-            t2_suspence = before_updated_day[day_index].iloc[null_index2 : ,]
+                #this for suspence_t2
+                
+                if len(t2_real_suspence) == 0:
+                    t2_real_suspence = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
+                    t2_real_suspence.reset_index(inplace = True, drop = True)
+                else:
+                    t2_real_suspence = pd.DataFrame(t2_real_suspence)
+                    t2_real_suspence.reset_index(inplace = True, drop = True)
             
-            
-            df4_copy_Email_list = df4_copy[df4_column_list[1]].values.tolist()
-            t2_suspence_Email_list = t2_suspence['Email'].values.tolist() 
-            
-            t2_real_suspence = []
-            t2_absent = []
-            
-            for t2_suspence_index,t2_suspence_Email in enumerate(t2_suspence_Email_list):
-                if str(t2_suspence_Email) not in present_data["Zoom id"].values.tolist():
-                    for df4_copy_index,df4_copy_Email in enumerate(df4_copy_Email_list):
-                        if t2_suspence_Email == df4_copy_Email:
-                            if df4_copy["Matched"][df4_copy_index] == True:
-                                t2_absent.append(t2_suspence.iloc[t2_suspence_index,])
-                            else:
-                                t2_real_suspence.append(t2_suspence.iloc[t2_suspence_index,])
-        
-            #this for suspence_t2
-            
-            if len(t2_real_suspence) == 0:
-                t2_real_suspence = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
-                t2_real_suspence.reset_index(inplace = True, drop = True)
-            else:
-                t2_real_suspence = pd.DataFrame(t2_real_suspence)
-                t2_real_suspence.reset_index(inplace = True, drop = True)
-        
-            #copy of t2_real_suspence for all suspence
-            t2_real_suspence_copy = t2_real_suspence.copy()
-        
-        
-            #daywise suspence data
-            def real_suspence_data_merge():
-                merge = pd.merge(t1_suspence, t2_real_suspence, how='outer', on='Email')
-                merge = merge[['Zoom Name_x', 'Email', 'Time_x', 'Registered Name_y', 'Gender_y', 'College Name_y', 'WhatsApp No._y','Zoom id_y']]
-                merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id']
-            
-                #add a nun row for absent data
-                merge = merge.append(pd.Series("nan"), ignore_index=True)
-                merge = merge.drop([0],axis=1) 
-                new_row={"Zoom Name":"Absent","Email":"Data"}
-                merge = merge.append(new_row,ignore_index=True)
-                return merge
-            logging.warning('Day{} only Suspence data shape- %s'.format(day_index),real_suspence_data_merge().shape)
+                #copy of t2_real_suspence for all suspence
+                t2_real_suspence_copy = t2_real_suspence.copy()
             
             
-            #this for Absent data
-            def t2_absent_func(t2_absent):
-                t2_absent = pd.DataFrame(t2_absent)
-                t2_absent.reset_index(inplace = True, drop = True)
-                t2_absent["Zoom Name"] = np.nan
-                t2_absent["Time"] = np.nan
-                t2_absent.drop_duplicates(subset=["Email"], keep='first', inplace=True)
-                t2_absent.reset_index(inplace = True, drop = True)
-                return t2_absent
+                #daywise suspence data
+                def real_suspence_data_merge():
+                    merge = pd.merge(t1_suspence, t2_real_suspence, how='outer', on='Email')
+                    merge = merge[['Zoom Name_x', 'Email', 'Time_x', 'Registered Name_y', 'Gender_y', 'College Name_y', 'WhatsApp No._y','Zoom id_y']]
+                    merge.columns = ['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id']
+                
+                    #add a nun row for absent data
+                    merge = merge.append(pd.Series("nan"), ignore_index=True)
+                    merge = merge.drop([0],axis=1) 
+                    new_row={"Zoom Name":"Absent","Email":"Data"}
+                    merge = merge.append(new_row,ignore_index=True)
+                    return merge
+                logging.warning('Day{} only Suspence data shape- %s'.format(day_index),real_suspence_data_merge().shape)
             
-            if len(t2_absent) == 0:
-                t2_absent = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
-            else:
-                t2_absent = t2_absent_func(t2_absent)
+           
             
-            logging.warning('Day{} only Absent data shape- %s'.format(day_index),t2_absent_func(t2_absent).shape)
-            #work for all suspence data
-            real_suspence = t2_real_suspence_copy[['Registered Name', 'Email', 'Gender', 'College Name', 'WhatsApp No.']]   
-            real_suspence.columns = ['Name','Email','Gender','College Name','WhatsApp No.']
-            t2 = t2.append(real_suspence) 
-                               
-        
-            daywise_frame = [present_data,real_suspence_data_merge(),t2_absent]
-            daywise_result = pd.concat(daywise_frame)
-            daywise_result.reset_index(inplace = True, drop = True)
-        
+                #this for Absent data
+                def t2_absent_func(t2_absent):
+                    t2_absent = pd.DataFrame(t2_absent)
+                    t2_absent.reset_index(inplace = True, drop = True)
+                    t2_absent["Zoom Name"] = np.nan
+                    t2_absent["Time"] = np.nan
+                    t2_absent.drop_duplicates(subset=["Email"], keep='first', inplace=True)
+                    t2_absent.reset_index(inplace = True, drop = True)
+                    return t2_absent
+                
+                if len(t2_absent) == 0:
+                    t2_absent = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
+                else:
+                    t2_absent = t2_absent_func(t2_absent)
+                
+            except:
+                print("Error 17: Distributed Real suspence data and absent data daywise error.")
+                sys.exit(1)
+            
+            try:
+                logging.warning('Day{} only Absent data shape- %s'.format(day_index),t2_absent_func(t2_absent).shape)
+                #work for all suspence data
+                real_suspence = t2_real_suspence_copy[['Registered Name', 'Email', 'Gender', 'College Name', 'WhatsApp No.']]   
+                real_suspence.columns = ['Name','Email','Gender','College Name','WhatsApp No.']
+                t2 = t2.append(real_suspence) 
+                                   
+            
+                daywise_frame = [present_data,real_suspence_data_merge(),t2_absent]
+                daywise_result = pd.concat(daywise_frame)
+                daywise_result.reset_index(inplace = True, drop = True)
+                
+            except:
+                print("Error 18: Concatenating of present data, suspence data and absent data daywise.")
+                sys.exit(1)
             #this number will print on daywise file name
             
 #            daynumber = (int(file_number) - int(File_Total)) + (day_index+1)
@@ -873,80 +897,101 @@ if is_internet():
     #=============================================================
     #from here we will generate 4 extra details files
         
+    
              
         #code for suspence data
-        t1.dropna(subset=['Email'], inplace=True)
-        t1.reset_index(inplace = True, drop = True) 
-        
-        def unique_name_list():
-            t1_name_column = []
-            for t1_name in t1.columns.tolist():
-                if "Name" in t1_name:
-                    t1_name_column.append(t1_name)
+        try:
+            t1.dropna(subset=['Email'], inplace=True)
+            t1.reset_index(inplace = True, drop = True) 
             
-            name_list = []
-            for i in range(t1.shape[0]):    
-                 a = t1.loc[i,t1_name_column].tolist()   
-                 cleanedList = [x for x in a if str(x) != 'nan']
-                 name_list.append(cleanedList[0])
-            return name_list
+            def unique_name_list():
+                t1_name_column = []
+                for t1_name in t1.columns.tolist():
+                    if "Name" in t1_name:
+                        t1_name_column.append(t1_name)
+                
+                name_list = []
+                for i in range(t1.shape[0]):    
+                     a = t1.loc[i,t1_name_column].tolist()   
+                     cleanedList = [x for x in a if str(x) != 'nan']
+                     name_list.append(cleanedList[0])
+                return name_list
+            
+            
+            name_list = unique_name_list() #using function unique_name_list()
         
-        
-        name_list = unique_name_list() #using function unique_name_list()
-        
+        except:
+                print("Error 19(part 1): Generating all Suspnce data error")
+                sys.exit(1)
+                
+         
+        try:
         #t1 function columns
-        def columns_name_list(name_list):
-            t1["Name_column"] = name_list
-            t1_name_column2 = ["Name_column"]
+            def columns_name_list(name_list):
+                t1["Name_column"] = name_list
+                t1_name_column2 = ["Name_column"]
+                
+                t1_name_column2.append("Email")
+                t1_time_column = []
+                for t1_time in t1.columns.tolist():
+                    if "Time" in t1_time:
+                        t1_time_column.append(t1_time)
+                
+                t1_column = t1_name_column2+t1_time_column
+                return t1_column,t1_time_column
             
-            t1_name_column2.append("Email")
-            t1_time_column = []
-            for t1_time in t1.columns.tolist():
-                if "Time" in t1_time:
-                    t1_time_column.append(t1_time)
+            t1_column,t1_time_column = columns_name_list(name_list)  #used the function columns_name_list(name_list)
             
-            t1_column = t1_name_column2+t1_time_column
-            return t1_column,t1_time_column
+            t1 = t1[t1_column] 
+            t1["Total"] = np.nan
+            t1 = t1.fillna(0)
         
-        t1_column,t1_time_column = columns_name_list(name_list)  #used the function columns_name_list(name_list)
+        except:
+                print("Error 19(part 2): Generating all Suspnce data error")
+                sys.exit(1)
         
-        t1 = t1[t1_column] 
-        t1["Total"] = np.nan
-        t1 = t1.fillna(0)
-        
-        
+        try:
         #now we will count that how many days exist our scipt
-        def days_count_func():
-            day_count = ["Zoom Name","Email"]
-            for day_index in range(len(t1_time_column)):
-                day_count.append("{}".format(reports_days_name_list[day_index]))
+            def days_count_func():
+                day_count = ["Zoom Name","Email"]
+                for day_index in range(len(t1_time_column)):
+                    day_count.append("{}".format(reports_days_name_list[day_index]))
+                
+                day_count.append("Total")
+                return day_count
+            t1.columns = days_count_func()
             
-            day_count.append("Total")
-            return day_count
-        t1.columns = days_count_func()
+            
+            
+            t1["Total"] = 0
+            for daywise_index in range(len(t1_time_column)):
+                t1["Total"] += t1["{}".format(reports_days_name_list[daywise_index])]
+            
+            t1 = t1.sort_values("Total", ascending = False)
+            t1.dropna(subset=['Email'],inplace=True)
+            t1.reset_index(inplace = True, drop = True)
+            
+            
+            t2.drop_duplicates(subset=["Email"], keep='first', inplace=True)
         
+        except:
+                print("Error 19(part 3): Generating all Suspnce data error")
+                sys.exit(1)
         
-        
-        t1["Total"] = 0
-        for daywise_index in range(len(t1_time_column)):
-            t1["Total"] += t1["{}".format(reports_days_name_list[daywise_index])]
-        
-        t1 = t1.sort_values("Total", ascending = False)
-        t1.dropna(subset=['Email'],inplace=True)
-        t1.reset_index(inplace = True, drop = True)
-        
-        
-        t2.drop_duplicates(subset=["Email"], keep='first', inplace=True)
-        
-        #using this function we will generate all suspence entries and use every section
-        def all_suspence_data(t1,t2):
-            suspence_merge = pd.merge(t1,t2, how='outer', on='Email')
-            suspence_merge_list = ['Name', 'Gender', 'College Name', 'WhatsApp No.','Zoom Name','Email']
-            suspence_merge_list = suspence_merge_list + t1.columns.tolist()[2:]
-            suspence_merge = suspence_merge[suspence_merge_list]  #now we will add this data into everyday and atleast present
-            return suspence_merge    
-        
-        suspence_merge = all_suspence_data(t1,t2)  #using all_suspence_data(t1,t2) function
+        try:        
+            #using this function we will generate all suspence entries and use every section
+            def all_suspence_data(t1,t2):
+                suspence_merge = pd.merge(t1,t2, how='outer', on='Email')
+                suspence_merge_list = ['Name', 'Gender', 'College Name', 'WhatsApp No.','Zoom Name','Email']
+                suspence_merge_list = suspence_merge_list + t1.columns.tolist()[2:]
+                suspence_merge = suspence_merge[suspence_merge_list]  #now we will add this data into everyday and atleast present
+                return suspence_merge    
+            
+            suspence_merge = all_suspence_data(t1,t2)  #using all_suspence_data(t1,t2) function
+        except:
+                print("Error 19(part 4): Generating all Suspnce data error")
+                sys.exit(1)
+                
         logging.warning('Total suspence shape- %s',suspence_merge.shape) 
         
         
@@ -965,180 +1010,209 @@ if is_internet():
         
         
         
-        
-        #every day present
-        def make_zoom(dataframe_name):
-            zoom = pd.concat(dataframe_name)
-            #Deleting the columns with no value
-            zoom = zoom.dropna(how = "all")
-            zoom.reset_index(inplace = True, drop = True)     
-            return zoom
-        
-        zoom = make_zoom(dataframe_name) #using make_zoom(dataframe_name) function here
+        try:
+            #every day present
+            def make_zoom(dataframe_name):
+                zoom = pd.concat(dataframe_name)
+                #Deleting the columns with no value
+                zoom = zoom.dropna(how = "all")
+                zoom.reset_index(inplace = True, drop = True)     
+                return zoom
             
-        emails = zoom["Zoom id"].tolist()
+            zoom = make_zoom(dataframe_name) #using make_zoom(dataframe_name) function here
+                
+            emails = zoom["Zoom id"].tolist()
         
-        def Dates_indexing():
-            ats = []
-            for at_index in range(1,(len(reports_days_name_list)+1)):
-                b = "at" + str(at_index)
-                ats.append(b)
-            return ats
+        except:
+                print("Error 20(part 1): Generating Everyday present data error")
+                sys.exit(1)
         
-        ats = Dates_indexing()
+        try:
+            def Dates_indexing():
+                ats = []
+                for at_index in range(1,(len(reports_days_name_list)+1)):
+                    b = "at" + str(at_index)
+                    ats.append(b)
+                return ats
             
-        index = 0
-        while index < len(reports_days_name_list):
-            ats[index] = [0] * len(emails)
-            index += 1
-        
-        
-        
-        zoom_names = zoom["Name"].tolist()
-        zoom_durations = zoom["Time"].tolist()
-        zoom_dates = zoom["Date"].tolist()
-        
-        
-        for dates_index in range(1,(len(reports_days_name_list)+1)):
-            for index,name in enumerate(zoom_names): 
-                for zindex, zname in enumerate(zoom_names):
-                    if str(name) in str(zname):
-                        if zoom_dates[zindex] == dates_index:
-                            ats[(dates_index-1)][index] = zoom_durations[zindex]
+            ats = Dates_indexing()
+                
+            index = 0
+            while index < len(reports_days_name_list):
+                ats[index] = [0] * len(emails)
+                index += 1
             
+            
+            
+            zoom_names = zoom["Name"].tolist()
+            zoom_durations = zoom["Time"].tolist()
+            zoom_dates = zoom["Date"].tolist()
+            
+            
+            for dates_index in range(1,(len(reports_days_name_list)+1)):
+                for index,name in enumerate(zoom_names): 
+                    for zindex, zname in enumerate(zoom_names):
+                        if str(name) in str(zname):
+                            if zoom_dates[zindex] == dates_index:
+                                ats[(dates_index-1)][index] = zoom_durations[zindex]
+                
+            
+                   
+            
+            total = [0] * len(zoom_names)
+            
+            
+            
+            for index,name in enumerate(zoom_names):
+                  index_at = 0
+                  while index_at < len(reports_days_name_list):
+                       if index_at == 0:
+                            total[index] = ats[index_at][index] 
+                       elif index_at > 0:
+                            total[index] += ats[index_at][index]
+                       index_at += 1
+             
+                      
+            
+            ats.insert(0, zoom_names)
+            ats.insert(1, emails)
+            cal = 2 + len(reports_days_name_list)
+            ats.insert(cal, total)
+            #z is a dataframe which have our compelete days total time (we need to transpose of dataset here)
+            z = pd.DataFrame(ats)
         
+        except:
+                print("Error 20(part 2): Generating Everyday present data error")
+                sys.exit(1)
+        
+        
+        try:
+            #transpose of our dataset
+            def datafram_transpose(z):
+                z = z.T  #transpose the dataframe
+                return z
+            
+            z = datafram_transpose(z) #using datafram_transpose(z) function
+            
+            
+            #z dataframe not have column names so we will give here names
+            def z_columns_list():
+                column_list = ["Zoom Name", "Email"]
+                for column_list_index in range(len(reports_days_name_list)):
+                    day_name = "{}".format(reports_days_name_list[column_list_index])
+                    column_list.append(day_name)
+                
+                column_list.append("Total")
+                return column_list
+            
+            z.columns = z_columns_list()  #using z_columns_list() function
+            
+            
+            z.drop_duplicates(inplace = True) #z dataframe have a lot of duplicate queries so we need to remove it
+            z.reset_index(inplace = True, drop = True)    #reset the rows indexing
                
+            
+             
+            z = z.rename(columns={'Email': 'Zoom id'})
+            #final dataframe have more matching detail of participants
+            final = z.merge(right = df4, how = "left", on = "Zoom id", suffixes=('', 'Registered'))
         
-        total = [0] * len(zoom_names)
+        except:
+                print("Error 20(part 3): Generating Everyday present data error")
+                sys.exit(1)
         
-        
-        
-        for index,name in enumerate(zoom_names):
-              index_at = 0
-              while index_at < len(reports_days_name_list):
-                   if index_at == 0:
-                        total[index] = ats[index_at][index] 
-                   elif index_at > 0:
-                        total[index] += ats[index_at][index]
-                   index_at += 1
+        try:
+            def final_dataframe_column_list():
+                final_list = ['Name', 'Gender', 'College Name', 'WhatsApp No.','Zoom Name', 'Zoom id']
+                for final_list_index in range(len(reports_days_name_list)):
+                    day_name = "{}".format(reports_days_name_list[final_list_index])
+                    final_list.append(day_name)
+                
+                final_list.append("Total")
+                return final_list
+            
+            
+            final = final[final_dataframe_column_list()]
+            
+            final = final.sort_values("Total", ascending = False) #sorting of total column
+            
+            final_copy = final.copy()  #this copy will be most use for "Reports/Not_present_any_day.csv"
          
-                  
-        
-        ats.insert(0, zoom_names)
-        ats.insert(1, emails)
-        cal = 2 + len(reports_days_name_list)
-        ats.insert(cal, total)
-        #z is a dataframe which have our compelete days total time (we need to transpose of dataset here)
-        z = pd.DataFrame(ats)
-        
-        
-        #transpose of our dataset
-        def datafram_transpose(z):
-            z = z.T  #transpose the dataframe
-            return z
-        
-        z = datafram_transpose(z) #using datafram_transpose(z) function
-        
-        
-        #z dataframe not have column names so we will give here names
-        def z_columns_list():
-            column_list = ["Zoom Name", "Email"]
-            for column_list_index in range(len(reports_days_name_list)):
-                day_name = "{}".format(reports_days_name_list[column_list_index])
-                column_list.append(day_name)
+        except:
+                print("Error 20(part 4): Generating Everyday present data error making final dataframe")
+                sys.exit(1)  
             
-            column_list.append("Total")
-            return column_list
-        
-        z.columns = z_columns_list()  #using z_columns_list() function
         
         
-        z.drop_duplicates(inplace = True) #z dataframe have a lot of duplicate queries so we need to remove it
-        z.reset_index(inplace = True, drop = True)    #reset the rows indexing
-           
         
+        
+        try:
+            #atleast one day present data
+            def prepare1_Atleast_one_day():  #step1
+                Atleast_one_day = final.copy()  
+                Atleast_one_day.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
+                Atleast_one_day.reset_index(inplace = True, drop = True) 
+                
+                Atleast_one_day = Atleast_one_day.rename(columns={'Zoom id': 'Email'})
+                Atleast_one_day = Atleast_one_day.rename(columns={'Name': 'Original_Name'})
+                return Atleast_one_day
+            
+            Atleast_one_day = prepare1_Atleast_one_day()
+            logging.warning('prepare1_Atleast_one_day shape- %s',Atleast_one_day.shape)
+        
+        except:
+                print("Error 21(part 1): Generating Atleast One Day data error")
+                sys.exit(1) 
          
-        z = z.rename(columns={'Email': 'Zoom id'})
-        #final dataframe have more matching detail of participants
-        final = z.merge(right = df4, how = "left", on = "Zoom id", suffixes=('', 'Registered'))
-        
-        
-        
-        def final_dataframe_column_list():
-            final_list = ['Name', 'Gender', 'College Name', 'WhatsApp No.','Zoom Name', 'Zoom id']
-            for final_list_index in range(len(reports_days_name_list)):
-                day_name = "{}".format(reports_days_name_list[final_list_index])
-                final_list.append(day_name)
+        try:
+            #here we will make second step for Atleast_one_day
+            def prepare2_Atleast_one_day(Atleast_one_day):   #step2
+                original_copy = df4_copy.copy()   #this is for original name
+                original_copy = original_copy.rename(columns={df4_column_list[1]: 'Email'})
+                Atleast_one_day = Atleast_one_day.merge(right = original_copy, how = "inner", on = "Email", suffixes=('', '_Reg') )
+                return Atleast_one_day
             
-            final_list.append("Total")
-            return final_list
-        
-        
-        final = final[final_dataframe_column_list()]
-        
-        final = final.sort_values("Total", ascending = False) #sorting of total column
-        
-        final_copy = final.copy()  #this copy will be most use for "Reports/Not_present_any_day.csv"
-        
-        
-        
-        
-        
-        
-        
-        #atleast one day present data
-        def prepare1_Atleast_one_day():  #step1
-            Atleast_one_day = final.copy()  
-            Atleast_one_day.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
-            Atleast_one_day.reset_index(inplace = True, drop = True) 
+            Atleast_one_day = prepare2_Atleast_one_day(Atleast_one_day)
+            logging.warning('prepare2_Atleast_one_day shape- %s',Atleast_one_day.shape)
             
-            Atleast_one_day = Atleast_one_day.rename(columns={'Zoom id': 'Email'})
-            Atleast_one_day = Atleast_one_day.rename(columns={'Name': 'Original_Name'})
-            return Atleast_one_day
-        
-        Atleast_one_day = prepare1_Atleast_one_day()
-        logging.warning('prepare1_Atleast_one_day shape- %s',Atleast_one_day.shape)
-        
-        #here we will make second step for Atleast_one_day
-        def prepare2_Atleast_one_day(Atleast_one_day):   #step2
-            original_copy = df4_copy.copy()   #this is for original name
-            original_copy = original_copy.rename(columns={df4_column_list[1]: 'Email'})
-            Atleast_one_day = Atleast_one_day.merge(right = original_copy, how = "inner", on = "Email", suffixes=('', '_Reg') )
-            return Atleast_one_day
-        
-        Atleast_one_day = prepare2_Atleast_one_day(Atleast_one_day)
-        logging.warning('prepare2_Atleast_one_day shape- %s',Atleast_one_day.shape)
-        
-        def Atleast_one_day_column_list():
-            Atleast_one_day_list = ['{}'.format(df4_column_list[0]), 'Gender', 'College Name', 'WhatsApp No.','Zoom Name', 'Email']
-            for Atleast_list_index in range(len(reports_days_name_list)):
-                At_day_name = "{}".format(reports_days_name_list[Atleast_list_index])
-                Atleast_one_day_list.append(At_day_name)
+            def Atleast_one_day_column_list():
+                Atleast_one_day_list = ['{}'.format(df4_column_list[0]), 'Gender', 'College Name', 'WhatsApp No.','Zoom Name', 'Email']
+                for Atleast_list_index in range(len(reports_days_name_list)):
+                    At_day_name = "{}".format(reports_days_name_list[Atleast_list_index])
+                    Atleast_one_day_list.append(At_day_name)
+                
+                Atleast_one_day_list.append("Total")
+                return Atleast_one_day_list
+            logging.warning('Atleast one day column list - %s',Atleast_one_day_column_list())    
             
-            Atleast_one_day_list.append("Total")
-            return Atleast_one_day_list
-        logging.warning('Atleast one day column list - %s',Atleast_one_day_column_list())    
+            #choose columns according to our need
+            Atleast_one_day = Atleast_one_day[Atleast_one_day_column_list()] #using Atleast_one_day_column_list() function 
+          
+        except:
+                print("Error 21(part 2): Generating Atleast One Day data error")
+                sys.exit(1)
         
-        #choose columns according to our need
-        Atleast_one_day = Atleast_one_day[Atleast_one_day_column_list()] #using Atleast_one_day_column_list() function 
-        
-        
-        #Now we will add suspence section in atleast one day
-        def prepare3_Atleast_one_day(Atleast_one_day): #step3 
-            Atleast_one_day=Atleast_one_day.append(pd.Series("nan"), ignore_index=True)
-            Atleast_one_day=Atleast_one_day.drop([0],axis=1) 
-            new_row={df4_column_list[0]:"Suspense","Gender":"Data"}
-            Atleast_one_day = Atleast_one_day.append(new_row,ignore_index=True) 
+        try:
+            #Now we will add suspence section in atleast one day
+            def prepare3_Atleast_one_day(Atleast_one_day): #step3 
+                Atleast_one_day=Atleast_one_day.append(pd.Series("nan"), ignore_index=True)
+                Atleast_one_day=Atleast_one_day.drop([0],axis=1) 
+                new_row={df4_column_list[0]:"Suspense","Gender":"Data"}
+                Atleast_one_day = Atleast_one_day.append(new_row,ignore_index=True) 
+                
+                Atleast_one_day = Atleast_one_day.rename(columns={df4_column_list[0]:'Name'})
+                return Atleast_one_day
             
-            Atleast_one_day = Atleast_one_day.rename(columns={df4_column_list[0]:'Name'})
-            return Atleast_one_day
+            logging.warning('Complete_Atleast_one_day shape- %s',prepare3_Atleast_one_day(Atleast_one_day).shape)
+            
+            frame2 = [prepare3_Atleast_one_day(Atleast_one_day),suspence_merge] #using prepare3_Atleast_one_day(Atleast_one_day) function 
+            Atleast_one_day = pd.concat(frame2)
+            Atleast_one_day.reset_index(inplace = True, drop = True)
         
-        logging.warning('Complete_Atleast_one_day shape- %s',prepare3_Atleast_one_day(Atleast_one_day).shape)
-        
-        frame2 = [prepare3_Atleast_one_day(Atleast_one_day),suspence_merge] #using prepare3_Atleast_one_day(Atleast_one_day) function 
-        Atleast_one_day = pd.concat(frame2)
-        Atleast_one_day.reset_index(inplace = True, drop = True)
-        
+        except:
+                print("Error 21(part 3): Generating Atleast One Day data error")
+                sys.exit(1)
+                
         Atleast_one_day.to_csv("Reports/Atleast_one_day_present.csv", index = False)    
             
          
@@ -1146,29 +1220,32 @@ if is_internet():
         
         
         
-              
-        #code for everyday present who are register and join every day  
-        def everyday_present(final):   
-            for last_index in range(len(reports_days_name_list)):
-                final = final[(final["{}".format(reports_days_name_list[last_index])] > 0)]
+        try:     
+            #code for everyday present who are register and join every day  
+            def everyday_present(final):   
+                for last_index in range(len(reports_days_name_list)):
+                    final = final[(final["{}".format(reports_days_name_list[last_index])] > 0)]
+                    
+                final.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
+                final.reset_index(inplace = True, drop = True)    
+                    
+                final = final.rename(columns={'Zoom id': 'Email'})
                 
-            final.drop_duplicates(subset=["Zoom id"], keep='first', inplace=True)
-            final.reset_index(inplace = True, drop = True)    
-                
-            final = final.rename(columns={'Zoom id': 'Email'})
+                #Now we will add suspence section in every daya present
+                final = final.append(pd.Series("nan"), ignore_index=True)
+                final = final.drop([0],axis=1) 
+                new_row = {'Name':"Suspense","Gender":"Data"}
+                final = final.append(new_row,ignore_index=True) 
+                return final
+            logging.warning('Everyday present data shape- %s',everyday_present(final).shape)
             
-            #Now we will add suspence section in every daya present
-            final = final.append(pd.Series("nan"), ignore_index=True)
-            final = final.drop([0],axis=1) 
-            new_row = {'Name':"Suspense","Gender":"Data"}
-            final = final.append(new_row,ignore_index=True) 
-            return final
-        logging.warning('Everyday present data shape- %s',everyday_present(final).shape)
-        
-        frame3 = [everyday_present(final),suspence_merge]  #using everyday_present(final) here
-        final = pd.concat(frame3)
-        final.reset_index(inplace = True, drop = True)
-        
+            frame3 = [everyday_present(final),suspence_merge]  #using everyday_present(final) here
+            final = pd.concat(frame3)
+            final.reset_index(inplace = True, drop = True)
+            
+        except:
+                print("Error 22 : creating file of Every day present problem")
+                sys.exit(1)
         final.to_csv("Reports/Full_data_present_everyday.csv", index = False)    
             
             
@@ -1572,7 +1649,7 @@ if is_internet():
             consolidated_dataframe3 = consolidated_dataframe3.sort_values("Total Time(Minutes)", ascending = False)
             consolidated_dataframe3.reset_index(inplace = True, drop = True)
             
-            consolidated_data_list1 = ['Registered Name','Gender','College Name','Email','WhatsApp No.']
+            consolidated_data_list1 = ['Registered Name','Email','Gender','College Name','WhatsApp No.']
             consolidated_data_list = consolidated_data_list1 + consolidated_dataframe3_day_list
             
             consolidated_fig = px.bar(consolidated_dataframe3, y ='Total Time(Minutes)',x = 'Registered Name',
@@ -2220,7 +2297,7 @@ if is_internet():
                         'overflowX': 'auto'},
                            style_cell={'height': 'auto',
                                        'textAlign': 'left',
-                                       'minWidth': '100px', 'width': '140px', 'maxWidth': '180px',
+                                       'minWidth': '140px', 'width': '170px', 'maxWidth': '180px',
                                        'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
@@ -2329,7 +2406,7 @@ if is_internet():
                            style_table={'overflowX': 'auto'},
                            style_cell={'height': 'auto',
                                        'textAlign': 'left',
-                                       'minWidth': '100px', 'width': '140px', 'maxWidth': '180px',
+                                       'minWidth': '140px', 'width': '170px', 'maxWidth': '180px',
                                        'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
@@ -2424,6 +2501,111 @@ if is_internet():
                 dcc.Graph(figure=consolidated_fig),
                 
 
+                
+                #search data
+                html.Div([
+                    dcc.Store(id = 'memory'),
+                    html.H3(
+                            children='Details of Particular Student',
+                            style={
+                                'textAlign': 'Center',
+                                'color': colors['color2'],
+                                'margin': 'auto',
+                                'font-size': '40px',
+                                'margin-bottom':'20px',
+                                'margin-top':'10px',
+                                'font': '40px Arial, sans-serif',
+                                
+                            }
+                        ),
+                    
+                    dbc.Container(
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.P('Search by:'),
+                                    dcc.Dropdown(
+                                            id = 'filter_x',
+                                            options=[
+                                                {'label': 'No filter', 'value': 0},
+                                                {'label': 'Name', 'value': 1},
+                                                {'label': 'Email id', 'value': 2},
+                                                {'label': 'Mobile No.', 'value': 3},
+                                                {'label': 'College Name', 'value': 4}
+                                            ],
+                                            value='0'
+                                         ),
+                                ],
+                                className='four columns',
+                                style={'margin-top': '10'}
+                            ),
+                            html.Div(
+                                [
+                                    html.P('Search From Here: '),
+                                    dcc.Input(
+                                              id = 'filter_y',
+                                              placeholder='Enter a value...',
+                                              value=''
+                                          )  ,
+                                ],
+                                className='five columns',
+                                style={'margin-top': '10','padding-left': '70px'}
+                            ),
+                            html.Div(
+                                [
+                                    html.Button(children='Search Data', id='button_chart',n_clicks=0)
+                                ],
+                                className='three columns',
+                                style={'padding-top': '30px'}
+                            )             
+                        ],
+                        className='row'
+                    ),
+                    ),
+                            
+                    dbc.Container(
+                     html.Div(
+                        [
+                              
+                                
+                            dash_table.DataTable(
+                            id='table',
+                            columns=[
+                                {"name": i, "id": i} for i in consolidated_data_list],
+                            page_current=0,
+                            page_size=PAGE_SIZE,
+                            page_action='custom',
+                                 style_cell={'height': 'auto',
+                                               'textAlign': 'left',
+                                               'minWidth': '120px', 'width': '140px', 'maxWidth': '180px',
+                                               'whiteSpace': 'normal'},  
+                            style_table={
+                                'overflowX': 'auto'},
+                           style_data={ 'border': '1px solid blue' ,
+                                       'margin-left':'20px',
+                                       'margin-right':'20px'},
+                            style_header={
+                              'backgroundColor': 'rgb(230, 230, 230)',
+                              'fontWeight': 'bold'},
+                            ),
+                            
+                            
+                                    
+                                    
+                         ], className = 'row',style = {'margin-top': 40,}
+                      ),
+                   ),
+        
+                   ], className = 'row',  style = {'margin-top': 50,
+                                                    'margin-bottom': 50,
+                                                    'margin-left': 80,
+                                                    'margin-right': 80,
+                                                   'border':'1px solid #C6CCD5', 
+                                                   'padding': 15,
+                                                   'border-radius': '5px'}
+                ),
+               
 
 
                #footer part
@@ -2633,7 +2815,100 @@ if is_internet():
                     return html.Div(['There was an error processing this file.'])
                 
                 
+            
+            
+            #Search button
+            @app.callback(dash.dependencies.Output('filter_y','type'),[dash.dependencies.Input('filter_x','value')])
+            def drop_value(value):
+                if value == 1:
+                    type = "text"
+                    return type
+                elif value == 2:
+                    type = "email"
+                    return type
+                elif value == 3:
+                    type = "number"
+                    return type
+                elif value == 4:
+                    type = "text"
+                    return type
+            
+            
+            #search data
+            @app.callback(dash.dependencies.Output('table', 'data'),
+                [dash.dependencies.Input('filter_x','value'),
+                 dash.dependencies.Input('table', "page_current"),
+                 dash.dependencies.Input('table', "page_size"),
+                 dash.dependencies.Input('button_chart', 'n_clicks')],
+                [dash.dependencies.State('filter_y', 'value')])
+            
+            def update_figure(value,page_current,page_size,n_clicks, filename):
+                df5 = consolidated_dataframe3
+                if value == 3:
+                    if type(filename) == int:
+                        filename = str(filename)
+                        filename_list = []
+                        for index,number in enumerate(df5["WhatsApp No."].tolist()):
+                            if filename in str(number):
+                                if str(number).startswith(filename):
+                                        filename_list.append(index)
+                        df6 = []
+                        for i in filename_list:
+                            df6.append(df5.iloc[i])
+                        df7 = pd.DataFrame(df6)
+                        data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data
+                elif value == 1:
+                    if filename.isalpha():
+                        filename = filename.upper()
+                        filename_list = []
+                        for index,name in enumerate(df5["Registered Name"].tolist()):
+                            if filename in name:
+                                name1 = name.split()
+                                for name1_part in name1:
+                                    if name1_part.startswith(filename):
+                                        filename_list.append(index)
+                                        break
+                        df6 = []
+                        for i in filename_list:
+                            df6.append(df5.iloc[i])
+                        df7 = pd.DataFrame(df6)
+                        data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data
+            
+                elif value == 2:
+                    if filename.isalnum() or filename.isalpha() or filename.isdigit() or "@" in filename or "." in filename:
+                        filename = filename.upper()
+                        filename_list = []
+                        for index,email in enumerate(df5["Email"].tolist()):
+                                if email.upper().startswith(filename):
+                                    filename_list.append(index)
+                                    
+                        df6 = []
+                        for i in filename_list:
+                            df6.append(df5.iloc[i])
+                        df7 = pd.DataFrame(df6)
+                        data=df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data
                 
+                
+                elif value == 4:
+                    if filename.isalnum() or filename.isalpha() or filename.isdigit():
+                        filename = filename.upper()
+                        filename_list = []
+                        for index,name in enumerate(df5["College Name"].tolist()):
+                            if filename in name.upper():
+                                name1 = name.upper().split()
+                                for name1_part in name1:
+                                    if name1_part.startswith(filename):
+                                        filename_list.append(index)
+                                        break
+                        df6 = []
+                        for i in filename_list:
+                            df6.append(df5.iloc[i])
+                        df7 = pd.DataFrame(df6)
+                        data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data
                 
                 
             
