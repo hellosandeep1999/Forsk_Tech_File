@@ -307,8 +307,9 @@ if is_internet():
             def make_main_df4_column_list(df4_column1):
                 for column_name in df4.columns.tolist():
                     if df4_column1 in column_name.upper():
-                        df4_column_list.append(column_name)
-                        break
+                        if column_name not in df4_column_list:
+                            df4_column_list.append(column_name)
+                            break
                 else:
                     df4[df4_column1] = np.nan
                     df4_column_list.append(df4_column1)
@@ -1472,7 +1473,7 @@ if is_internet():
         #Upload the complete master sheet   
         Master_sheet.drop_duplicates(subset=["Email ID"], keep='first', inplace=True)
         Master_sheet.reset_index(inplace = True, drop = True)
-#        gd.set_with_dataframe(sheet, Master_sheet)        
+        #gd.set_with_dataframe(sheet, Master_sheet)        
                 
     
     
@@ -1917,15 +1918,17 @@ if is_internet():
                            page_current=0,
                            page_size=PAGE_SIZE,
                            page_action='custom',
-                           style_cell={'whiteSpace': 'normal',
-                                       'height': 'auto',
+                           style_table={'overflowX': 'auto'},
+                           style_cell={'height': 'auto',
                                        'textAlign': 'left',
-                                       'overflow': 'hidden',
-                                       'textOverflow': 'ellipsis',
-                                       'maxWidth': 0,}, 
+                                       'minWidth': '200px', 'width': '210px', 'maxWidth': '200px',
+                                       'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
-                                       'margin-right':'20px'},
+                                       'margin-right':'20px',
+                                       'whiteSpace': 'normal',
+                                        'height': 'auto',
+                                        'lineHeight': '15px'},
                             style_header={
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
@@ -2029,15 +2032,17 @@ if is_internet():
                            page_current = 0,
                            page_size = PAGE_SIZE,
                            page_action = 'custom',
-                           style_cell={'whiteSpace': 'normal',
-                                       'height': 'auto',
+                           style_table={'overflowX': 'auto'},
+                           style_cell={'height': 'auto',
                                        'textAlign': 'left',
-                                       'overflow': 'hidden',
-                                       'textOverflow': 'ellipsis',
-                                       'maxWidth': 0,}, 
+                                       'minWidth': '200px', 'width': '210px', 'maxWidth': '200px',
+                                       'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
-                                       'margin-right':'20px'},
+                                       'margin-right':'20px',
+                                       'whiteSpace': 'normal',
+                                        'height': 'auto',
+                                        'lineHeight': '15px'},
                             style_header={
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
@@ -2196,10 +2201,17 @@ if is_internet():
                            page_current=0,
                            page_size=PAGE_SIZE,
                            page_action='custom',
-                           style_cell={'textAlign': 'left'}, 
+                           style_table={'overflowX': 'auto'},
+                           style_cell={'height': 'auto',
+                                       'textAlign': 'left',
+                                       'minWidth': '200px', 'width': '210px', 'maxWidth': '200px',
+                                       'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
-                                       'margin-right':'20px'},
+                                       'margin-right':'20px',
+                                       'whiteSpace': 'normal',
+                                        'height': 'auto',
+                                        'lineHeight': '15px'},
                             style_header={
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
@@ -2297,7 +2309,7 @@ if is_internet():
                         'overflowX': 'auto'},
                            style_cell={'height': 'auto',
                                        'textAlign': 'left',
-                                       'minWidth': '140px', 'width': '170px', 'maxWidth': '180px',
+                                       'minWidth': '160px', 'width': '200px', 'maxWidth': '210px',
                                        'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
@@ -2406,7 +2418,7 @@ if is_internet():
                            style_table={'overflowX': 'auto'},
                            style_cell={'height': 'auto',
                                        'textAlign': 'left',
-                                       'minWidth': '140px', 'width': '170px', 'maxWidth': '180px',
+                                       'minWidth': '160px', 'width': '200px', 'maxWidth': '210px',
                                        'whiteSpace': 'normal'}, 
                            style_data={ 'border': '1px solid blue' ,
                                        'margin-left':'20px',
@@ -2537,7 +2549,23 @@ if is_internet():
                                             value='0'
                                          ),
                                 ],
-                                className='four columns',
+                                className='three columns',
+                                style={'margin-top': '10'}
+                            ),
+                            html.Div(
+                                [
+                                    html.P('Select one:'),
+                                    dcc.Dropdown(
+                                            id = 'filter_z',
+                                            options=[
+                                                {'label': 'No filter', 'value': 0},
+                                                {'label': 'Start With', 'value': 1},
+                                                {'label': 'Ends With', 'value': 2}
+                                            ],
+                                            value='0'
+                                         ),
+                                ],
+                                className='three columns',
                                 style={'margin-top': '10'}
                             ),
                             html.Div(
@@ -2549,14 +2577,14 @@ if is_internet():
                                               value=''
                                           )  ,
                                 ],
-                                className='five columns',
+                                className='four columns',
                                 style={'margin-top': '10','padding-left': '70px'}
                             ),
                             html.Div(
                                 [
                                     html.Button(children='Search Data', id='button_chart',n_clicks=0)
                                 ],
-                                className='three columns',
+                                className='two columns',
                                 style={'padding-top': '30px'}
                             )             
                         ],
@@ -2578,7 +2606,7 @@ if is_internet():
                             page_action='custom',
                                  style_cell={'height': 'auto',
                                                'textAlign': 'left',
-                                               'minWidth': '120px', 'width': '140px', 'maxWidth': '180px',
+                                               'minWidth': '160px', 'width': '200px', 'maxWidth': '210px',
                                                'whiteSpace': 'normal'},  
                             style_table={
                                 'overflowX': 'auto'},
@@ -2837,79 +2865,150 @@ if is_internet():
             #search data
             @app.callback(dash.dependencies.Output('table', 'data'),
                 [dash.dependencies.Input('filter_x','value'),
+                 dash.dependencies.Input('filter_z','value'),
                  dash.dependencies.Input('table', "page_current"),
                  dash.dependencies.Input('table', "page_size"),
                  dash.dependencies.Input('button_chart', 'n_clicks')],
                 [dash.dependencies.State('filter_y', 'value')])
             
-            def update_figure(value,page_current,page_size,n_clicks, filename):
+            def update_figure(value1,value2,page_current,page_size,n_clicks, filename):
                 df5 = consolidated_dataframe3
-                if value == 3:
-                    if type(filename) == int:
-                        filename = str(filename)
-                        filename_list = []
-                        for index,number in enumerate(df5["WhatsApp No."].tolist()):
-                            if filename in str(number):
-                                if str(number).startswith(filename):
-                                        filename_list.append(index)
-                        df6 = []
-                        for i in filename_list:
-                            df6.append(df5.iloc[i])
-                        df7 = pd.DataFrame(df6)
-                        data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
-                        return data
-                elif value == 1:
-                    if filename.isalpha():
-                        filename = filename.upper()
-                        filename_list = []
-                        for index,name in enumerate(df5["Registered Name"].tolist()):
-                            if filename in name:
-                                name1 = name.split()
-                                for name1_part in name1:
-                                    if name1_part.startswith(filename):
-                                        filename_list.append(index)
-                                        break
-                        df6 = []
-                        for i in filename_list:
-                            df6.append(df5.iloc[i])
-                        df7 = pd.DataFrame(df6)
-                        data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
-                        return data
-            
-                elif value == 2:
-                    if filename.isalnum() or filename.isalpha() or filename.isdigit() or "@" in filename or "." in filename:
-                        filename = filename.upper()
-                        filename_list = []
-                        for index,email in enumerate(df5["Email"].tolist()):
-                                if email.upper().startswith(filename):
-                                    filename_list.append(index)
-                                    
-                        df6 = []
-                        for i in filename_list:
-                            df6.append(df5.iloc[i])
-                        df7 = pd.DataFrame(df6)
-                        data=df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
-                        return data
+                if value2 == 1:
+                    if value1 == 3:
+            #            if type(filename) == int:
+                            filename = str(filename)
+                            filename_list = []
+                            for index,number in enumerate(df5["WhatsApp No."].tolist()):
+                                if filename in str(number):
+                                    if str(number).startswith(filename):
+                                            filename_list.append(index)
+                            df6 = []
+                            for i in filename_list:
+                                df6.append(df5.iloc[i])
+                            df7 = pd.DataFrame(df6)
+                            data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                            return data
+                    elif value1 == 1:
+            #            if filename.isalpha():
+                            filename = filename.upper()
+                            filename_list = []
+                            for index,name in enumerate(df5["Registered Name"].tolist()):
+                                if filename in name:
+                                    name1 = name.split()
+                                    for name1_part in name1:
+                                        if name1_part.startswith(filename):
+                                            filename_list.append(index)
+                                            break
+                            df6 = []
+                            for i in filename_list:
+                                df6.append(df5.iloc[i])
+                            df7 = pd.DataFrame(df6)
+                            data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                            return data
                 
-                
-                elif value == 4:
-                    if filename.isalnum() or filename.isalpha() or filename.isdigit():
-                        filename = filename.upper()
-                        filename_list = []
-                        for index,name in enumerate(df5["College Name"].tolist()):
-                            if filename in name.upper():
-                                name1 = name.upper().split()
-                                for name1_part in name1:
-                                    if name1_part.startswith(filename):
+                    elif value1 == 2:
+            #            if filename.isalnum() or filename.isalpha() or filename.isdigit() or "@" in filename or "." in filename:
+                            filename = filename.upper()
+                            filename_list = []
+                            for index,email in enumerate(df5["Email"].tolist()):
+                                    if email.upper().startswith(filename):
                                         filename_list.append(index)
-                                        break
-                        df6 = []
-                        for i in filename_list:
-                            df6.append(df5.iloc[i])
-                        df7 = pd.DataFrame(df6)
-                        data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
-                        return data
+                                        
+                            df6 = []
+                            for i in filename_list:
+                                df6.append(df5.iloc[i])
+                            df7 = pd.DataFrame(df6)
+                            data=df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                            return data
+                    
+                    
+                    elif value1 == 4:
+            #            if filename.isalnum() or filename.isalpha() or filename.isdigit():
+                            filename = filename.upper()
+                            filename_list = []
+                            for index,name in enumerate(df5["College Name"].tolist()):
+                                if filename in name.upper():
+                                    name1 = name.upper().split()
+                                    for name1_part in name1:
+                                        if name1_part.startswith(filename):
+                                            filename_list.append(index)
+                                            break
+                            df6 = []
+                            for i in filename_list:
+                                df6.append(df5.iloc[i])
+                            df7 = pd.DataFrame(df6)
+                            data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                            return data
+                elif value2 == 2:
+                    if value1 == 3:
+            #            if type(filename) == int:
+                            filename = str(filename)
+                            filename_list = []
+                            for index,number in enumerate(df5["WhatsApp No."].tolist()):
+                                if filename in str(int(number)):
+                                    if str(int(number)).endswith(filename):
+                                            filename_list.append(index)
+                            df6 = []
+                            for i in filename_list:
+                                df6.append(df5.iloc[i])
+                            df7 = pd.DataFrame(df6)
+                            data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                            return data
+                    elif value1 == 1:
+            #            if filename.isalpha():
+                            filename = filename.upper()
+                            filename_list = []
+                            for index,name in enumerate(df5["Registered Name"].tolist()):
+                                if filename in name:
+                                    name1 = name.split()
+                                    for name1_part in name1:
+                                        if name1_part.endswith(filename):
+                                            filename_list.append(index)
+                                            break
+                            df6 = []
+                            for i in filename_list:
+                                df6.append(df5.iloc[i])
+                            df7 = pd.DataFrame(df6)
+                            data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                            return data
                 
+                    elif value1 == 2:
+            #            if filename.isalnum() or filename.isalpha() or filename.isdigit() or "@" in filename or "." in filename:
+                            filename = filename.upper()
+                            filename_list = []
+                            for index,email in enumerate(df5["Email"].tolist()):
+                                    if email.upper().endswith(filename):
+                                        filename_list.append(index)
+                                        
+                            df6 = []
+                            for i in filename_list:
+                                df6.append(df5.iloc[i])
+                            df7 = pd.DataFrame(df6)
+                            data=df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                            return data
+                    
+                    
+                    elif value1 == 4:
+            #            if filename.isalnum() or filename.isalpha() or filename.isdigit():
+                            filename = filename.upper()
+                            filename_list = []
+                            for index,name in enumerate(df5["College Name"].tolist()):
+                                if filename in name.upper():
+                                    name1 = name.upper().split()
+                                    for name1_part in name1:
+                                        if name1_part.endswith(filename):
+                                            filename_list.append(index)
+                                            break
+                            df6 = []
+                            for i in filename_list:
+                                df6.append(df5.iloc[i])
+                            df7 = pd.DataFrame(df6)
+                            data = df7.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                            return data          
+                else:
+                    if n_clicks:
+                        data = df5.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data
                 
             
             if __name__ == '__main__':
