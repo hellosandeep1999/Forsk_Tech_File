@@ -1659,6 +1659,19 @@ if is_internet():
                             height=450,
                          )
             
+            #difference of absent list
+            diff_day_list = []
+            l = 0
+            for diff_index,diff_name in enumerate(reports_days_name_list):
+#                if diff_index == l:
+#                    change_day1 = diff_name
+                if diff_index == l + 1:
+                    l += 1
+                    change_day2 = diff_name
+                    diff_days = reports_days_name_list[l-1] + " - " + change_day2
+                    diff_day_list.append(diff_days)
+                    
+            
             
             
             colors = {
@@ -1933,6 +1946,9 @@ if is_internet():
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
                         },
+                        export_format='xlsx',
+                        export_headers='display',
+                        merge_duplicate_headers=True,
                           
                             ),
                             
@@ -2047,6 +2063,9 @@ if is_internet():
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
                         },
+                        export_format='xlsx',
+                        export_headers='display',
+                        merge_duplicate_headers=True,
                           
                             ),
                             
@@ -2057,6 +2076,22 @@ if is_internet():
                 
                 
                 
+                #A horizontal line:
+                html.H1(
+                    children='',
+                    style={
+                        'textAlign': 'center',
+                        'color': colors['color1'],
+                        'backgroundColor': 'black',
+                        'borderRadius': '5px',
+                        'margin': '20px',
+                        'padding': '2px',
+                        'margin-bottom':'30px',
+                        'font-size': '10px',
+                        'margin-top':'120px'
+                        
+                    }
+                ),
                 
                 
                 
@@ -2216,6 +2251,9 @@ if is_internet():
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
                         },
+                        export_format='xlsx',
+                        export_headers='display',
+                        merge_duplicate_headers=True,
                           
                             ),
                             
@@ -2329,6 +2367,9 @@ if is_internet():
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
                         },
+                        export_format='xlsx',
+                        export_headers='display',
+                        merge_duplicate_headers=True,
                           
                             ),
                             
@@ -2434,6 +2475,9 @@ if is_internet():
                               'backgroundColor': 'rgb(230, 230, 230)',
                               'fontWeight': 'bold'
                         },
+                        export_format='xlsx',
+                        export_headers='display',
+                        merge_duplicate_headers=True,
                           
                             ),
                             
@@ -2513,6 +2557,25 @@ if is_internet():
                 dcc.Graph(figure=consolidated_fig),
                 
 
+
+                #A horizontal line:
+                html.H1(
+                    children='',
+                    style={
+                        'textAlign': 'center',
+                        'color': colors['color1'],
+                        'backgroundColor': 'black',
+                        'borderRadius': '5px',
+                        'margin': '20px',
+                        'padding': '2px',
+                        'margin-bottom':'100px',
+                        'font-size': '10px',
+                        'margin-top':'120px'
+                        
+                    }
+                ),
+                
+                
                 
                 #search data
                 html.Div([
@@ -2634,6 +2697,163 @@ if is_internet():
                                                    'border-radius': '5px'}
                 ),
                
+               
+                
+                
+                
+                
+                #A horizontal line:
+                html.H1(
+                    children='',
+                    style={
+                        'textAlign': 'center',
+                        'color': colors['color1'],
+                        'backgroundColor': 'black',
+                        'borderRadius': '5px',
+                        'margin': '20px',
+                        'padding': '2px',
+                        'margin-bottom':'50px',
+                        'font-size': '10px',
+                        'margin-top':'120px'
+                        
+                    }
+                ),
+                
+                
+                
+                
+                
+                #Heading of dropdown:-
+                html.H3(
+                            children='Difference Tables',
+                            style={
+                                'textAlign': 'Center',
+                                'color': colors['color2'],
+                                'margin': 'auto',
+                                'font-size': '40px',
+                                'margin-bottom':'20px',
+                                'margin-top':'30px',
+                                'font': '40px Arial, sans-serif',
+                                
+                            }
+                        ),
+                
+               #last Drop Down:
+               dbc.Container(
+                html.Div([dcc.Dropdown(id='last_dd',
+                    options=[{'label': c , 'value': c} for c in diff_day_list],
+                    value = diff_day_list[0])],
+                style={
+                        'width':'40%',
+                        'padding':40,
+                        'justify-content': 'center',
+                        'margin-left':220,
+                        'margin-top':'50px'
+                    }
+                ),
+                ),
+                
+                
+                #heading of difference table
+                html.Div([
+                        html.Div(
+                                    [
+                                        html.H3(
+                                                id = 'diff_head',
+                                                style={
+                                                    'textAlign': 'Right',
+                                                    'color': 'blue',
+                                                    'margin': 'auto',
+                                                    'font-size': '25px',
+                                                    'margin-bottom':'30px',
+                                                    'margin-right':'30px',
+                                                    'font': '20px Arial, sans-serif',
+                                                    
+                                                }
+                                          ),
+                                        ],className='seven columns',
+                                    style={'padding-top': '30px'}
+                        ),
+                       html.Div(
+                                    [
+                                        html.H3(
+                                            children='Count: ',
+                                            style={
+                                                'textAlign': 'Right',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'0px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                    ],
+                                    className='three columns',
+                                    style={'padding-top': '30px'}
+                                ),
+                        html.Div(
+                                    [
+                                        html.H3(
+                                            id = 'check_count_diff',
+                                            style={
+                                                'textAlign': 'Left',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'0px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                    ],
+                                    className='two columns',
+                                    style={'padding-top': '30px'}
+                                )
+                    ],className = 'row'
+                ),
+                                    
+                                    
+                #table by drop down
+                dbc.Container(
+                html.Div(
+                        [
+                                
+                            dash_table.DataTable(
+                            id='diff_daywise',
+                            columns=[
+                                {"name": i, "id": i} for i in Suspence_day_list],
+                           css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
+                           page_current = 0,
+                           page_size = PAGE_SIZE,
+                           page_action = 'custom',
+                           style_table={'overflowX': 'auto'},
+                           style_cell={'height': 'auto',
+                                       'textAlign': 'left',
+                                       'minWidth': '200px', 'width': '210px', 'maxWidth': '200px',
+                                       'whiteSpace': 'normal'}, 
+                           style_data={ 'border': '1px solid blue' ,
+                                       'margin-left':'20px',
+                                       'margin-right':'20px',
+                                       'whiteSpace': 'normal',
+                                        'height': 'auto',
+                                        'lineHeight': '15px'},
+                            style_header={
+                              'backgroundColor': 'rgb(230, 230, 230)',
+                              'fontWeight': 'bold'
+                        },
+                        export_format='xlsx',
+                        export_headers='display',
+                        merge_duplicate_headers=True,
+                          
+                            ),
+                            
+                            
+                        ], className = 'row'
+                    ),className="p-5",
+                ),
+                                    
+                                    
 
 
                #footer part
@@ -2748,9 +2968,22 @@ if is_internet():
                     a = dff[(dff["Email"].isnull())].index[0]
                     b = dff[(dff["Email"].isnull())].index[1]
                     dff = dff.iloc[a+2:b,]
-                    count = len(dff)
-                    page_count_value = math.ceil(len(dff)/10)
-                    data=dff.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                    dff.reset_index(inplace = True, drop = True)
+                    cleanedList1 = [x for x in dff["Zoom Name"].tolist() if x == x]
+                    cleanedList2 = [x for x in dff["Registered Name"].tolist() if x == x]
+                    cleanedList_copy = cleanedList1 + cleanedList2
+                    cleanedList3 = cleanedList1 + cleanedList2
+                    cleanedList3.sort()
+                    new_dff = pd.DataFrame(columns=['Zoom Name', 'Email', 'Time', 'Registered Name', 'Gender','College Name', 'WhatsApp No.', 'Zoom id'])
+                    for cleanedList3_index,cleanedList3_name in enumerate(cleanedList3):
+                        if cleanedList3_name in cleanedList_copy:
+                            name_index = cleanedList_copy.index(cleanedList3_name)
+                            if dff["Email"][name_index] not in new_dff["Email"].tolist():
+                                new_dff = new_dff.append(dff.iloc[name_index,])
+                        
+                    count = len(new_dff)
+                    page_count_value = math.ceil(len(new_dff)/10)
+                    data=new_dff.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
                     return data,count,page_count_value
                           
             
@@ -3009,7 +3242,49 @@ if is_internet():
                     if n_clicks:
                         data = df5.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
                         return data
+             
+             
                 
+            #difference of daywise present data    
+            @app.callback(dash.dependencies.Output('diff_head','children'),[dash.dependencies.Input('last_dd','value')])
+            def update_fig2(value):  
+                return value
+                
+            #difference of daywise present data
+            @app.callback([dash.dependencies.Output('diff_daywise','data'),
+                           dash.dependencies.Output('check_count_diff','children'),
+                           dash.dependencies.Output('diff_daywise','page_count')],
+                          [dash.dependencies.Input('last_dd','value'),
+                           dash.dependencies.Input('diff_daywise', "page_current"),
+                           dash.dependencies.Input('diff_daywise', "page_size")])
+            
+            def update_fig(value,page_current,page_size):
+                try:
+                    v_list = value.split(" - ")
+                    dff1 = pd.read_csv("Reports/{}.csv".format(v_list[0]))
+                    dff1_present_index = dff1[dff1["Zoom Name"].isnull()].index.tolist()[0]
+                    present_data1 = dff1.iloc[:dff1_present_index,]
+                    dff2 = pd.read_csv("Reports/{}.csv".format(v_list[1]))
+                    dff2_present_index = dff2[dff2["Zoom Name"].isnull()].index.tolist()[0]
+                    present_data2 = dff2.iloc[:dff2_present_index,]
+                    
+                    diff_data = []
+                    for diff_index,diff_email in enumerate(present_data1["Zoom id"].tolist()):
+                        if diff_email not in present_data2["Zoom id"].tolist():
+                            diff_data.append(present_data1.iloc[diff_index,])
+                    diff_data = pd.DataFrame(diff_data) 
+                    diff_data = diff_data.sort_values("Time", ascending = False)
+                    diff_data.reset_index(inplace = True, drop = True)
+                   
+                    count = len(diff_data)
+                    page_count_value = math.ceil(len(diff_data)/10)
+                    data=diff_data.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                    return data,count,page_count_value
+                          
+            
+                except:
+                    return html.Div(['There was an error processing this file.'])
+            
             
             if __name__ == '__main__':
                 Timer(1, open_browser).start();
