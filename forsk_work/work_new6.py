@@ -952,7 +952,9 @@ if is_internet():
                 daywise_result.reset_index(inplace = True, drop = True)
                 
                 create_daywise.append(reports_days_name_list[day_index])
-                create_daywise[day_index] = daywise_result
+                dfff_index = daywise_result[daywise_result["Registered Name"].isnull()].index.tolist()[0]
+                create_daywise[day_index] = daywise_result.iloc[:dfff_index,]
+
                 daywise_result = daywise_result[['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id']]
                 
             except:
@@ -1303,6 +1305,7 @@ if is_internet():
                 #This line use for hiding all pandas warnings
                 pd.options.mode.chained_assignment = None
                 for last_index in range(len(reports_days_name_list)):
+                    final.reset_index(inplace = True, drop = True)
                     time_integer2  = [(lambda x: int(x))(x) for x in final["{}".format(reports_days_name_list[last_index])].tolist()]
                     final = final[(pd.Series(time_integer2) > 0)]
                     final.reset_index(inplace = True, drop = True)
@@ -1599,6 +1602,7 @@ if is_internet():
             import webbrowser
             from threading import Timer
             import math
+            import datetime
             
             #open browser automatically
             def open_browser():
@@ -1842,6 +1846,31 @@ if is_internet():
                     }
                 ),
                 ),
+                
+                
+                
+                
+                #Daily trends Graph:-
+                html.H3(
+                            children='Daily Trends',
+                            style={
+                                'textAlign': 'Center',
+                                'color': colors['color2'],
+                                'margin': 'auto',
+                                'font-size': '30px',
+                                'margin-bottom':'20px',
+                                'margin-top':'30px',
+                                'font': '30px Arial, sans-serif',
+                                
+                            }
+                    ),
+                
+                #graph1
+                dcc.Graph(id = 'graph_daily_trends'),
+              
+                
+                
+                
                 
                 
                 
@@ -2972,6 +3001,81 @@ if is_internet():
             @app.callback(dash.dependencies.Output('reg2','children'),[dash.dependencies.Input('dd','value')])
             def update_fig2(value):  
                 return value
+            
+            
+            
+            
+            #Daily trends graph
+            @app.callback(dash.dependencies.Output('graph_daily_trends','figure'),
+                          [dash.dependencies.Input('dd','value')])
+            
+            def update_fig(value):
+                try:
+                    create_day_wise_index = reports_days_name_list.index(value)
+                    if len(create_daywise[create_day_wise_index].columns.tolist()) == 10:
+                        dff = create_daywise[create_day_wise_index]
+                        if len(dff["Join"][0].split()) == 2:
+                            for i in range(len(dff)):
+                                dff["Join"][i] = dff["Join"][i].split()[1]
+                                dff["Leave"][i] = dff["Leave"][i].split()[1]
+                            
+                        min_time = min(dff["Join"].tolist())
+                        max_time = max(dff["Leave"].tolist())
+                        fmt = '%H:%M:%S'
+                        d1 = datetime.datetime.strptime(min_time, fmt)
+                        d2 = datetime.datetime.strptime(max_time, fmt)
+                        
+                        diff = d2 -d1
+                        diff_minutes = diff.seconds/60
+                        a = math.ceil(diff_minutes/15)
+                        
+                        list1 = []
+                        list1.append(d1)
+                        for i in range(a):
+                            d1 = d1 + datetime.timedelta(minutes=15)
+                            list1.append(d1)
+                        list2 = []
+                        for i in list1:
+                            list2.append(i.strftime('%H:%M:%S'))
+                        
+                        list3 = []
+                        for index,Time in enumerate(list2[:-1]):
+                            count = 0
+                            for i in range(len(dff)):
+                                if dff["Join"][i] <= list2[index+1] and dff["Leave"][i] >= list2[index+1]:
+                                    count += 1
+                                elif dff["Join"][i] <= list2[index+1] and dff["Leave"][i] >= list2[index]:
+                                    count += 1
+                            list3.append(count)
+                        
+                        data = {'Time':list2[:-1], 'Count':list3}
+                        daily_trends = pd.DataFrame(data)
+                        
+                        figure = px.bar(daily_trends, y ='Count',x = 'Time',
+                                        text='Count'
+                                        )
+                        figure.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+                        figure.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
+                        return figure
+                    elif len(create_daywise[create_day_wise_index].columns.tolist()) == 8:   
+                        daily_trends = pd.DataFrame(columns=['Time','Count'])
+                        figure = px.bar(daily_trends, y ='Count',x = 'Time',
+                                        text='Count'
+                                        )
+                        figure.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+                        figure.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
+                        return figure
+                        
+            
+                except:
+                    return html.Div(['There was an error processing this file.'])
+                
+                 
+                
+            
+            
+            
+            
             
             #calling for Registered and present students
             @app.callback([dash.dependencies.Output('graph','figure'),
