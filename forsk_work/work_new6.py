@@ -89,7 +89,14 @@ if is_internet():
     
     
     Inside_report_excel = "Reports/{}.csv".format(Meeting_id)  #This is for Excel sheet which is inside in Report folder
-    outside_excel = "{}.xlsx".format(Meeting_id)                #outside excel sheet
+    if os.path.exists("{}-pay.xlsx".format(Meeting_id)):
+        excel_file_num = int(input("\n1. {}.xlsx\n2. {}-pay.xlsx\nBoth files are available which want to you choose (1 or 2): ".format(Meeting_id,Meeting_id)))
+        if excel_file_num == 1:
+            outside_excel = "{}.xlsx".format(Meeting_id)
+        else:
+            outside_excel = "{}-pay.xlsx".format(Meeting_id)
+    else:
+        outside_excel = "{}.xlsx".format(Meeting_id)                #outside excel sheet
     
     #pandas gives a lot of warnings 
     
@@ -273,6 +280,7 @@ if is_internet():
                 df4.drop_duplicates(subset=[consolated_dataframe_email_column[0]], keep='first', inplace=True)
                 df4.reset_index(inplace = True, drop = True)
                 df4_copy = df4.copy()
+                df4_copy_columns_lst = df4_copy.columns.tolist()
             else:
                 df4 = pd.read_excel("{}".format(outside_excel))
                 total_column = len(df4.columns.tolist())
@@ -280,6 +288,7 @@ if is_internet():
                 df4.drop_duplicates(subset=[consolated_dataframe_email_column[0]], keep='first', inplace=True)
                 df4.reset_index(inplace = True, drop = True)
                 df4_copy = df4.copy()
+                df4_copy_columns_lst = df4_copy.columns.tolist()
         except:
             print("Error 5:  Registered Excel sheet giving problem.")
             sys.exit(1)      
@@ -325,15 +334,23 @@ if is_internet():
             print("Error 6:  Excel sheet have column problem Please check columns of Excel sheet")
             sys.exit(1)       
         logging.warning('Choosed column list of main meeting id sheet - %s',df4_column_list)
-            
+          
+        
         
         df4 = df4[df4_column_list]  #set columns which we want
         
         
-            
+        df4_column_list2 = df4_column_list.copy()    
             
         df4.columns = ["Name", "Email", "Gender", "College Name", "WhatsApp No."] 
         
+        df4_copy.rename(columns = {df4_column_list[0]:'Name',
+                                   df4_column_list[1]:'Your Gmail ID',
+                                   df4_column_list[2]:'Gender',
+                                   df4_column_list[3]:'College Name',
+                                   df4_column_list[4]:'WhatsApp No.'}, inplace = True)
+        
+        df4_column_list = ['Name','Your Gmail ID','Gender','College Name','WhatsApp No.']
         #this list contains all days original names
         reports_days_name_list = []  
         
@@ -856,6 +873,7 @@ if is_internet():
                 t1_suspence = before_updated_day[day_index].iloc[null_index1+2 : null_index2,]
                 t1_suspence.dropna(subset=['Zoom Name', 'Email','Time'],inplace=True)
                 t1_suspence.drop_duplicates(subset=["Email"], keep='first', inplace=True)
+                t1_suspence = t1_suspence.sort_values("Time", ascending = False)
                 t1_suspence.reset_index(inplace = True, drop = True)
                 column_length = len(t1_suspence.columns.tolist())
                 
@@ -1386,7 +1404,22 @@ if is_internet():
         
         
         #updated excel sheet
+        if os.path.exists("{}".format(Inside_report_excel)):
+            df4_copy.columns = df4_copy_columns_lst
+        else:
+            df4_copy.columns = df4_copy_columns_lst + ['Zoom id','Matched','Zoom Name']
         df4_copy.to_csv("{}".format(Inside_report_excel), index = False)
+        df4_copy.rename(columns = {df4_column_list2[0]:'Name',
+                                   df4_column_list2[1]:'Your Gmail ID',
+                                   df4_column_list2[2]:'Gender',
+                                   df4_column_list2[3]:'College Name',
+                                   df4_column_list2[4]:'WhatsApp No.'}, inplace = True)
+        
+        
+        
+        
+        
+        
         
     
         #this part for true entris which are true in df4_copy but false in master sheet
@@ -1556,7 +1589,7 @@ if is_internet():
         #Upload the complete master sheet   
         Master_sheet.drop_duplicates(subset=["Email ID"], keep='first', inplace=True)
         Master_sheet.reset_index(inplace = True, drop = True)
-        #gd.set_with_dataframe(sheet, Master_sheet)        
+#        gd.set_with_dataframe(sheet, Master_sheet)        
                 
     
     
@@ -1747,7 +1780,9 @@ if is_internet():
             diff_day_list = []
             l = 0
             for diff_index,diff_name in enumerate(reports_days_name_list):
-#                if diff_index == l:
+                if diff_index == 0:
+                    diff_days = "Registered" + " - " + diff_name
+                    diff_day_list.append(diff_days)
 #                    change_day1 = diff_name
                 if diff_index == l + 1:
                     l += 1
@@ -1851,19 +1886,76 @@ if is_internet():
                 
                 
                 #Daily trends Graph:-
+                html.Div([
+                        html.Div(
+                                    [
+                                        html.H3(
+                                            children='Daily Trends',
+                                            style={
+                                                'textAlign': 'Right',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '30px',
+                                                'margin-bottom':'0px',
+                                                'font': '30px Arial, sans-serif',
+                                                'margin-right':'20px',
+                                                
+                                            }
+                                        ),
+                                        ],className='seven columns',
+                                    style={'padding-top': '30px'}
+                        ),
+                       html.Div(
+                                    [
+                                        html.H3(
+                                            children='Count: ',
+                                            style={
+                                                'textAlign': 'Right',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'0px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                    ],
+                                    className='three columns',
+                                    style={'padding-top': '30px'}
+                                ),
+                        html.Div(
+                                    [
+                                        html.H3(
+                                            id = 'check_count_Daily_Trends',
+                                            style={
+                                                'textAlign': 'Left',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'0px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                    ],
+                                    className='two columns',
+                                    style={'padding-top': '30px'}
+                                )
+                    ],className = 'row'
+                ),
+                
                 html.H3(
-                            children='Daily Trends',
-                            style={
-                                'textAlign': 'Center',
-                                'color': colors['color2'],
-                                'margin': 'auto',
-                                'font-size': '30px',
-                                'margin-bottom':'20px',
-                                'margin-top':'30px',
-                                'font': '30px Arial, sans-serif',
-                                
-                            }
-                    ),
+                id = 'reg3',
+                style={
+                    'textAlign': 'center',
+                    'color': 'black',
+                    'margin': 'auto',
+                    'font-size': '25px',
+                    'margin-bottom':'0px',
+                    'font': '20px Arial, sans-serif',
+                    
+                }
+                ),                    
                 
                 #graph1
                 dcc.Graph(id = 'graph_daily_trends'),
@@ -3002,11 +3094,14 @@ if is_internet():
             def update_fig2(value):  
                 return value
             
-            
+            @app.callback(dash.dependencies.Output('reg3','children'),[dash.dependencies.Input('dd','value')])
+            def update_fig2(value):  
+                return value
             
             
             #Daily trends graph
-            @app.callback(dash.dependencies.Output('graph_daily_trends','figure'),
+            @app.callback([dash.dependencies.Output('graph_daily_trends','figure'),
+                          dash.dependencies.Output('check_count_Daily_Trends','children')],
                           [dash.dependencies.Input('dd','value')])
             
             def update_fig(value):
@@ -3014,32 +3109,33 @@ if is_internet():
                     create_day_wise_index = reports_days_name_list.index(value)
                     if len(create_daywise[create_day_wise_index].columns.tolist()) == 10:
                         dff = create_daywise[create_day_wise_index]
+                        daily_count = len(dff)
                         if len(dff["Join"][0].split()) == 2:
                             for i in range(len(dff)):
-                                dff["Join"][i] = dff["Join"][i].split()[1]
-                                dff["Leave"][i] = dff["Leave"][i].split()[1]
+                                dff["Join"][i] = dff["Join"][i].split()[1][:-3]
+                                dff["Leave"][i] = dff["Leave"][i].split()[1][:-3]
                             
                         min_time = min(dff["Join"].tolist())
                         max_time = max(dff["Leave"].tolist())
-                        fmt = '%H:%M:%S'
+                        fmt = '%H:%M'
                         d1 = datetime.datetime.strptime(min_time, fmt)
                         d2 = datetime.datetime.strptime(max_time, fmt)
                         
                         diff = d2 -d1
                         diff_minutes = diff.seconds/60
-                        a = math.ceil(diff_minutes/15)
+                        a = math.ceil(diff_minutes/10)
                         
                         list1 = []
                         list1.append(d1)
                         for i in range(a):
-                            d1 = d1 + datetime.timedelta(minutes=15)
+                            d1 = d1 + datetime.timedelta(minutes=10)
                             list1.append(d1)
                         list2 = []
                         for i in list1:
-                            list2.append(i.strftime('%H:%M:%S'))
+                            list2.append(i.strftime('%H:%M'))
                         
-                        list3 = []
-                        for index,Time in enumerate(list2[:-1]):
+                        list3 = [0]
+                        for index,Time in enumerate(list2[1:]):
                             count = 0
                             for i in range(len(dff)):
                                 if dff["Join"][i] <= list2[index+1] and dff["Leave"][i] >= list2[index+1]:
@@ -3048,23 +3144,17 @@ if is_internet():
                                     count += 1
                             list3.append(count)
                         
-                        data = {'Time':list2[:-1], 'Count':list3}
-                        daily_trends = pd.DataFrame(data)
+                        data1 = {'Time':list2[:], 'Count':list3}
+                        daily_trends = pd.DataFrame(data1)
                         
-                        figure = px.bar(daily_trends, y ='Count',x = 'Time',
-                                        text='Count'
-                                        )
-                        figure.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-                        figure.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
-                        return figure
+                        figure = go.Figure(data=go.Scatter(x=daily_trends['Time'], y=daily_trends['Count']))
+                        return figure,daily_count
+                    
                     elif len(create_daywise[create_day_wise_index].columns.tolist()) == 8:   
                         daily_trends = pd.DataFrame(columns=['Time','Count'])
-                        figure = px.bar(daily_trends, y ='Count',x = 'Time',
-                                        text='Count'
-                                        )
-                        figure.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-                        figure.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
-                        return figure
+                        daily_count = len(daily_trends)
+                        figure = go.Figure(data=go.Scatter(x=daily_trends['Time'], y=daily_trends['Count']))
+                        return figure,daily_count
                         
             
                 except:
@@ -3445,25 +3535,48 @@ if is_internet():
             def update_fig(value,page_current,page_size):
                 try:
                     v_list = value.split(" - ")
-                    dff1 = pd.read_csv("Reports/{}.csv".format(v_list[0]))
-                    dff1_present_index = dff1[dff1["Zoom Name"].isnull()].index.tolist()[0]
-                    present_data1 = dff1.iloc[:dff1_present_index,]
-                    dff2 = pd.read_csv("Reports/{}.csv".format(v_list[1]))
-                    dff2_present_index = dff2[dff2["Zoom Name"].isnull()].index.tolist()[0]
-                    present_data2 = dff2.iloc[:dff2_present_index,]
+                    if v_list[0] == 'Registered':
+                        dff1 = df4_copy
+                        dff2 = pd.read_csv("Reports/{}.csv".format(v_list[-1]))
+                        dff2_present_index = dff2[dff2["Zoom Name"].isnull()].index.tolist()[0]
+                        present_data2 = dff2.iloc[:dff2_present_index,]
+                        
+                        diff_data = []
+                        for diff_index,diff_email in enumerate(dff1["Your Gmail ID"].tolist()):
+                            if diff_email not in present_data2["Zoom id"].tolist():
+                                diff_data.append(dff1.iloc[diff_index,])
+                        diff_data = pd.DataFrame(diff_data) 
+                        diff_data["Time"] = np.nan
+                        diff_data.reset_index(inplace = True, drop = True)
+                        diff_data = diff_data[['Zoom Name','Your Gmail ID','Time','Name',
+                                               'Gender','College Name','WhatsApp No.','Zoom id']]
+                        diff_data = diff_data.rename(columns={'Your Gmail ID':'Email',
+                                                              'Name':'Registered Name'})
+                        count = len(diff_data)
+                        page_count_value = math.ceil(len(diff_data)/10)
+                        data=diff_data.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data,count,page_count_value
                     
-                    diff_data = []
-                    for diff_index,diff_email in enumerate(present_data1["Zoom id"].tolist()):
-                        if diff_email not in present_data2["Zoom id"].tolist():
-                            diff_data.append(present_data1.iloc[diff_index,])
-                    diff_data = pd.DataFrame(diff_data) 
-                    diff_data = diff_data.sort_values("Time", ascending = False)
-                    diff_data.reset_index(inplace = True, drop = True)
-                   
-                    count = len(diff_data)
-                    page_count_value = math.ceil(len(diff_data)/10)
-                    data=diff_data.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
-                    return data,count,page_count_value
+                    else:
+                        dff1 = pd.read_csv("Reports/{}.csv".format(v_list[0]))
+                        dff1_present_index = dff1[dff1["Zoom Name"].isnull()].index.tolist()[0]
+                        present_data1 = dff1.iloc[:dff1_present_index,]
+                        dff2 = pd.read_csv("Reports/{}.csv".format(v_list[1]))
+                        dff2_present_index = dff2[dff2["Zoom Name"].isnull()].index.tolist()[0]
+                        present_data2 = dff2.iloc[:dff2_present_index,]
+                        
+                        diff_data = []
+                        for diff_index,diff_email in enumerate(present_data1["Zoom id"].tolist()):
+                            if diff_email not in present_data2["Zoom id"].tolist():
+                                diff_data.append(present_data1.iloc[diff_index,])
+                        diff_data = pd.DataFrame(diff_data) 
+                        diff_data = diff_data.sort_values("Time", ascending = False)
+                        diff_data.reset_index(inplace = True, drop = True)
+                       
+                        count = len(diff_data)
+                        page_count_value = math.ceil(len(diff_data)/10)
+                        data=diff_data.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data,count,page_count_value
                           
             
                 except:
