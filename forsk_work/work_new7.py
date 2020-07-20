@@ -2021,7 +2021,7 @@ if is_internet():
                         html.Div(
                         [
                                     html.A(
-                                    html.Button('Download', id='download-button_daywise_present'), 
+                                    html.Button('Export', id='download-button_daywise_present'), 
                                     id='my-link_daywise_present'),
                                     
                                     ],className='two columns',
@@ -2109,7 +2109,7 @@ if is_internet():
                         html.Div(
                         [
                                     html.A(
-                                    html.Button('Download', id='download-button_daywise_Absent'), 
+                                    html.Button('Export', id='download-button_daywise_Absent'), 
                                     id='my-link_daywise_Absent'),
                                     
                                     ],className='two columns',
@@ -2234,6 +2234,16 @@ if is_internet():
                 dbc.Container(
                  html.Div([
                         html.Div(
+                        [
+                                    html.A(
+                                    html.Button('Export', id='download-button_daywise_Suspence'), 
+                                    id='my-link_daywise_Suspence'),
+                                    
+                                    ],className='two columns',
+                                   style={'margin': 'auto','margin-bottom':'5px',
+                                                'margin-top':'85px'}
+                        ),
+                        html.Div(
                                     [
                                         html.H3(
                                             children='Suspense Students(Daywise)',
@@ -2248,7 +2258,7 @@ if is_internet():
                                                 
                                             }
                                         ),
-                                        ],className='eight columns',
+                                        ],className='six columns',
                                     style={'padding-top': '30px'}
                         ),
                        html.Div(
@@ -2370,7 +2380,7 @@ if is_internet():
                         html.Div(
                         [
                                     html.A(
-                                    html.Button('Download', id='download-button_All_day_present'), 
+                                    html.Button('Export', id='download-button_All_day_present'), 
                                     id='my-link_All_day_present',
                                     href = '/dash/urlToDownload_All_day_present?value=Full_data_present_everyday'),
                                     ],className='two columns',
@@ -2449,7 +2459,7 @@ if is_internet():
                         html.Div(
                         [
                                     html.A(
-                                    html.Button('Download', id='download-button_Not_present'), 
+                                    html.Button('Export', id='download-button_Not_present'), 
                                     id='my-link_Not_present',
                                     href = '/dash/urlToDownload_Not_present?value=Not_present_any_day'),
                                     ],className='two columns',
@@ -2565,7 +2575,7 @@ if is_internet():
                          html.Div(
                          [
                                     html.A(
-                                    html.Button('Download', id='download-button_Atleast_one_day'), 
+                                    html.Button('Export', id='download-button_Atleast_one_day'), 
                                     id='my-link_Atleast_one_day',
                                     href = '/dash/urlToDownload_Atleast_one_day?value=Atleast_one_day_present'),
                                     ],className='two columns',
@@ -2685,6 +2695,16 @@ if is_internet():
                 dbc.Container(
                 html.Div([
                         html.Div(
+                         [
+                                    html.A(
+                                    html.Button('Export', id='download-button_All_day_suspence'), 
+                                    id='my-link_All_day_suspence',
+                                    href = '/dash/urlToDownload_All_day_suspence?value=Atleast_one_day_present'),
+                                    ],className='two columns',
+                                   style={'margin-bottom':'15px',
+                                          'margin-top':'85px',}
+                        ),
+                        html.Div(
                                     [
                                         html.H3(
                                             children='All Suspense Data Table',
@@ -2699,7 +2719,7 @@ if is_internet():
                                                 
                                             }
                                         ),
-                                        ],className='eight columns',
+                                        ],className='six columns',
                                     style={'padding-top': '30px'}
                         ),
                        html.Div(
@@ -2792,6 +2812,16 @@ if is_internet():
             #Consoleted final graph 
             dbc.Container(
                  html.Div([
+                         html.Div(
+                         [
+                                    html.A(
+                                    html.Button('Export', id='download-button_Consolidated_Analysis'), 
+                                    id='my-link_Consolidated_Analysis',
+                                    href = '/dash/urlToDownload_Consolidated_Analysis'),
+                                    ],className='two columns',
+                                   style={'margin-bottom':'15px',
+                                          'margin-top':'85px',}
+                        ),
                         html.Div(
                                     [
                                         html.H3(
@@ -2807,7 +2837,7 @@ if is_internet():
                                                 
                                             }
                                         ),
-                                        ],className='eight columns',
+                                        ],className='six columns',
                                     style={'padding-top': '30px'}
                         ),
                        html.Div(
@@ -3364,8 +3394,20 @@ if is_internet():
                 a = dff[(dff["Email"].isnull())].index[0]
                 dff = dff.iloc[:a,]
                 dff.rename(columns={'Time':'Time(Minutes)'}, inplace = True )
+                upper_list4 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+                upper_list5 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
+                upper_list6 = [y.upper().strip() if type(y) == str else y for y in dff["Zoom id"].values.tolist()]
+                master_dataframe = []
+                for upper_list6_email in upper_list6:
+                    if upper_list6_email in upper_list4:
+                        upper_list4_index = upper_list4.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list4_index,])
+                    elif upper_list6_email in upper_list5:
+                        upper_list5_index = upper_list5.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list5_index,])
+                master_dataframe = pd.DataFrame(master_dataframe)        
                 str_io = io.StringIO()
-                dff.to_csv(str_io)
+                master_dataframe.to_csv(str_io)
                 mem = io.BytesIO()
                 mem.write(str_io.getvalue().encode('utf-8'))
                 mem.seek(0)
@@ -3425,9 +3467,20 @@ if is_internet():
                 dff = pd.concat(dff_list)
                 dff = dff[df4_column_list + ['Zoom Name','Zoom id']]
                 dff.columns = ["Registered Name","Email ID",'Your Gender',"College Name",'Whatsapp No ', 'Zoom Name', 'Zoom id']
-                
+                upper_list4 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+                upper_list5 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
+                upper_list6 = [y.upper().strip() if type(y) == str else y for y in dff["Email ID"].values.tolist()]
+                master_dataframe = []
+                for upper_list6_email in upper_list6:
+                    if upper_list6_email in upper_list4:
+                        upper_list4_index = upper_list4.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list4_index,])
+                    elif upper_list6_email in upper_list5:
+                        upper_list5_index = upper_list5.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list5_index,])
+                master_dataframe = pd.DataFrame(master_dataframe)
                 str_io = io.StringIO()
-                dff.to_csv(str_io)
+                master_dataframe.to_csv(str_io)
                 mem = io.BytesIO()
                 mem.write(str_io.getvalue().encode('utf-8'))
                 mem.seek(0)
@@ -3442,7 +3495,8 @@ if is_internet():
             #Daywise Suspense Data Table
             @app.callback([dash.dependencies.Output('suspence_daywise','data'),
                            dash.dependencies.Output('check_count_suspence','children'),
-                           dash.dependencies.Output('suspence_daywise','page_count')],
+                           dash.dependencies.Output('suspence_daywise','page_count'),
+                           dash.dependencies.Output('my-link_daywise_Suspence', 'href')],
                           [dash.dependencies.Input('dd','value'),
                            dash.dependencies.Input('suspence_daywise', "page_current"),
                            dash.dependencies.Input('suspence_daywise', "page_size")])
@@ -3469,11 +3523,52 @@ if is_internet():
                     count = len(new_dff)
                     page_count_value = math.ceil(len(new_dff)/10)
                     data=new_dff.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
-                    return data,count,page_count_value
+                    return data,count,page_count_value,'/dash/urlToDownload_daywise_Suspence?value={}'.format(value)
                           
             
                 except:
                     return html.Div(['There was an error processing this file.'])
+              
+           
+            
+            
+            @app.server.route('/dash/urlToDownload_daywise_Suspence')
+            def daywise_Suspence():
+                value = flask.request.args.get('value')
+                # create a dynamic csv or file here using `StringIO`
+                # (instead of writing to the file system)
+                dff = pd.read_csv("Reports/{}.csv".format(value))
+                a = dff[(dff["Email"].isnull())].index[0]
+                b = dff[(dff["Email"].isnull())].index[1]
+                dff = dff.iloc[a+2:b,]
+                dff.reset_index(inplace = True, drop = True)
+                cleanedList1 = [x for x in dff["Zoom Name"].tolist() if x == x]
+                cleanedList2 = [x for x in dff["Registered Name"].tolist() if x == x]
+                cleanedList_copy = cleanedList1 + cleanedList2
+                cleanedList3 = cleanedList1 + cleanedList2
+                cleanedList3.sort()
+                new_dff = pd.DataFrame(columns=['Zoom Name', 'Email', 'Time', 'Registered Name', 'Gender','College Name', 'WhatsApp No.', 'Zoom id'])
+                for cleanedList3_index,cleanedList3_name in enumerate(cleanedList3):
+                    if cleanedList3_name in cleanedList_copy:
+                        name_index = cleanedList_copy.index(cleanedList3_name)
+                        if dff["Email"][name_index] not in new_dff["Email"].tolist():
+                            new_dff = new_dff.append(dff.iloc[name_index,])
+                
+                str_io = io.StringIO()
+                new_dff.to_csv(str_io)
+                mem = io.BytesIO()
+                mem.write(str_io.getvalue().encode('utf-8'))
+                mem.seek(0)
+                str_io.close()
+            
+                return flask.send_file(mem,
+                                       mimetype='text/csv',
+                                       attachment_filename='download_daywaise_Suspence_{}.csv'.format(value),
+                                       as_attachment=True)
+
+            
+            
+                
                 
              
                 
@@ -3488,8 +3583,21 @@ if is_internet():
                 Full_data_present1 = Full_data_present.iloc[:Full_dat_index,]
                 
                 Full_data_present1.rename(columns={'Total':'Total Time(Minutes)','Name':'Registered Name'}, inplace = True )
+                upper_list4 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+                upper_list5 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
+                upper_list6 = [y.upper().strip() if type(y) == str else y for y in Full_data_present1["Email"].values.tolist()]
+                                
+                master_dataframe = []
+                for upper_list6_email in upper_list6:
+                    if upper_list6_email in upper_list4:
+                        upper_list4_index = upper_list4.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list4_index,])
+                    elif upper_list6_email in upper_list5:
+                        upper_list5_index = upper_list5.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list5_index,])
+                master_dataframe = pd.DataFrame(master_dataframe)
                 str_io = io.StringIO()
-                Full_data_present1.to_csv(str_io)
+                master_dataframe.to_csv(str_io)
                 mem = io.BytesIO()
                 mem.write(str_io.getvalue().encode('utf-8'))
                 mem.seek(0)
@@ -3538,9 +3646,22 @@ if is_internet():
                 Not_dat_index = Not_Present_any[(Not_Present_any["Name"].isnull())].index[0]
                 Not_Present_any = Not_Present_any.iloc[:Not_dat_index,]
                 Not_Present_any = Not_Present_any[Not_Present_any_col_list]
+                upper_list4 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+                upper_list5 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
+                upper_list6 = [y.upper().strip() if type(y) == str else y for y in Not_Present_any["Email"].values.tolist()]
+                                
+                master_dataframe = []
+                for upper_list6_email in upper_list6:
+                    if upper_list6_email in upper_list4:
+                        upper_list4_index = upper_list4.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list4_index,])
+                    elif upper_list6_email in upper_list5:
+                        upper_list5_index = upper_list5.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list5_index,])
+                master_dataframe = pd.DataFrame(master_dataframe)
                 
                 str_io = io.StringIO()
-                Not_Present_any.to_csv(str_io)
+                master_dataframe.to_csv(str_io)
                 mem = io.BytesIO()
                 mem.write(str_io.getvalue().encode('utf-8'))
                 mem.seek(0)
@@ -3589,9 +3710,22 @@ if is_internet():
                 Atleast_one_day_index = Atleast_one_day_copy[(Atleast_one_day_copy["Email"].isnull())].index[0]
                 Atleast_one_day_copy = Atleast_one_day_copy.iloc[ : Atleast_one_day_index,]
                 Atleast_one_day_copy = Atleast_one_day_copy[Atleast_present_col_list]
+                upper_list4 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+                upper_list5 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
+                upper_list6 = [y.upper().strip() if type(y) == str else y for y in Atleast_one_day_copy["Email"].values.tolist()]
+                                
+                master_dataframe = []
+                for upper_list6_email in upper_list6:
+                    if upper_list6_email in upper_list4:
+                        upper_list4_index = upper_list4.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list4_index,])
+                    elif upper_list6_email in upper_list5:
+                        upper_list5_index = upper_list5.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list5_index,])
+                master_dataframe = pd.DataFrame(master_dataframe)
                 
                 str_io = io.StringIO()
-                Atleast_one_day_copy.to_csv(str_io)
+                master_dataframe.to_csv(str_io)
                 mem = io.BytesIO()
                 mem.write(str_io.getvalue().encode('utf-8'))
                 mem.seek(0)
@@ -3634,9 +3768,87 @@ if is_internet():
                 except:
                     return html.Div(['There was an error processing this file.'])
                 
+            #All day suspence Export button
+            @app.server.route('/dash/urlToDownload_All_day_suspence')
+            def Download_All_day_suspence():
+                value = flask.request.args.get('value')
+                # create a dynamic csv or file here using `StringIO`
+                # (instead of writing to the file system)
+                All_suspence_data = pd.read_csv("Reports/{}.csv".format(value))
+#               All_suspence_data_col_list = All_suspence_data.columns.tolist()
+                Atleast_one_day_index = All_suspence_data[(All_suspence_data["Email"].isnull())].index[0]
+                All_suspence_data = All_suspence_data.iloc[Atleast_one_day_index+2 : ,]
                 
+                str_io = io.StringIO()
+                All_suspence_data.to_csv(str_io)
+                mem = io.BytesIO()
+                mem.write(str_io.getvalue().encode('utf-8'))
+                mem.seek(0)
+                str_io.close()
+            
+                return flask.send_file(mem,
+                                       mimetype='text/csv',
+                                       attachment_filename='All_suspence_data.csv',
+                                       as_attachment=True)
             
             
+            
+            
+            #Consolited Data
+            @app.server.route('/dash/urlToDownload_Consolidated_Analysis')
+            def Download_Consolidated_Analysis():
+#                value = flask.request.args.get('value')
+                # create a dynamic csv or file here using `StringIO`
+                # (instead of writing to the file system)
+                #Consolidated graph which will be permanent below which tells us atleast one day graph
+                consolidated_dataframe2 = df4.copy()
+                consolidated_dataframe2 = consolidated_dataframe2.rename(columns={'Zoom id': 'Email'})
+                consolidated_dataframe2.drop_duplicates(subset=["Email"], keep='first', inplace=True)
+                consolidated_dataframe2.reset_index(inplace = True, drop = True) 
+                consolidated_dataframe3 = pd.merge(consolidated_dataframe2, Atleast_one_day_copy, how='left', on=['Email'])
+                consolidated_dataframe3.drop(consolidated_dataframe3.iloc[:, 5:10], inplace = True, axis = 1)
+                
+                consolidated_dataframe3 = consolidated_dataframe3.rename(columns={'Name_x': 'Name',
+                                                                                  'Gender_x': 'Gender',
+                                                                                  'College Name_x': 'College Name',
+                                                                                  'WhatsApp No._x':'WhatsApp No.'})
+                consolidated_dataframe3.rename(columns={'Total':'Total Time(Minutes)','Name':'Registered Name'}, inplace = True )
+                consolidated_dataframe3_day_list = consolidated_dataframe3.columns.tolist()[5:]
+                for consolidated_dataframe3_day_list_name in consolidated_dataframe3_day_list:
+                        consolidated_dataframe3[consolidated_dataframe3_day_list_name].fillna(0, inplace=True)
+                consolidated_dataframe3 = consolidated_dataframe3.sort_values("Total Time(Minutes)", ascending = False)
+                consolidated_dataframe3.reset_index(inplace = True, drop = True)
+                upper_list4 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+                upper_list5 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
+                upper_list6 = [y.upper().strip() if type(y) == str else y for y in consolidated_dataframe3["Email"].values.tolist()]
+                                
+                master_dataframe = []
+                for upper_list6_email in upper_list6:
+                    if upper_list6_email in upper_list4:
+                        upper_list4_index = upper_list4.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list4_index,])
+                    elif upper_list6_email in upper_list5:
+                        upper_list5_index = upper_list5.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list5_index,])
+                master_dataframe = pd.DataFrame(master_dataframe)
+
+                
+                str_io = io.StringIO()
+                master_dataframe.to_csv(str_io)
+                mem = io.BytesIO()
+                mem.write(str_io.getvalue().encode('utf-8'))
+                mem.seek(0)
+                str_io.close()
+            
+                return flask.send_file(mem,
+                                       mimetype='text/csv',
+                                       attachment_filename='download_Consolidated_Analysis.csv',
+                                       as_attachment=True)
+            
+            
+    
+    
+    
             #Search button
             @app.callback(dash.dependencies.Output('filter_y','type'),[dash.dependencies.Input('filter_x','value')])
             def drop_value(value):
