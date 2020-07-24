@@ -1634,7 +1634,7 @@ if is_internet():
         #Upload the complete master sheet   
         Master_sheet.drop_duplicates(subset=["Email ID"], keep='first', inplace=True)
         Master_sheet.reset_index(inplace = True, drop = True)
-        gd.set_with_dataframe(sheet, Master_sheet)        
+#        gd.set_with_dataframe(sheet, Master_sheet)        
                 
     
     
@@ -2817,7 +2817,7 @@ if is_internet():
                                     html.A(
                                     html.Button('Export', id='download-button_Consolidated_Analysis'), 
                                     id='my-link_Consolidated_Analysis',
-                                    href = '/dash/urlToDownload_Consolidated_Analysis'),
+                                    href = '/dash/urlToDownload_Consolidated_Analysis?value={}'.format(Meeting_id)),
                                     ],className='two columns',
                                    style={'margin-bottom':'15px',
                                           'margin-top':'85px',}
@@ -3077,14 +3077,23 @@ if is_internet():
                         'padding':40,
                         'justify-content': 'center',
                         'margin-left':220,
-                        'margin-top':'50px'
+                        'margin-top':'20px'
                     }
                 ),
                 ),
                 
                 #print the total register count (This is a extra part)
-             
+             dbc.Container(
                 html.Div([
+                        html.Div(
+                         [
+                                    html.A(
+                                    html.Button('Export', id='download-button_difference_table'), 
+                                    id='my-link_difference_table'),
+                                    ],className='two columns',
+                                   style={'margin-bottom':'0px',
+                                          'margin-top':'20px',}
+                        ),
                         html.Div(
                                     [
                                         html.H3(
@@ -3100,7 +3109,7 @@ if is_internet():
                                                 
                                             }
                                         ),
-                                        ],className='seven columns',
+                                        ],className='five columns',
                                     style={'padding-top': '30px'}
                         ),
                        html.Div(
@@ -3119,7 +3128,7 @@ if is_internet():
                                             }
                                         ),
                                     ],
-                                    className='three columns',
+                                    className='four columns',
                                     style={'padding-top': '30px'}
                                 ),
                         html.Div(
@@ -3138,12 +3147,12 @@ if is_internet():
                                             }
                                         ),
                                     ],
-                                    className='two columns',
+                                    className='one columns',
                                     style={'padding-top': '30px'}
                                 )
                     ],className = 'row'
                 ),
-                 
+                 ),
                 
                 
                 
@@ -3159,7 +3168,7 @@ if is_internet():
                                                     'color': 'blue',
                                                     'margin': 'auto',
                                                     'font-size': '25px',
-                                                    'margin-bottom':'30px',
+                                                    'margin-bottom':'10px',
                                                     'margin-right':'30px',
                                                     'font': '20px Arial, sans-serif',
                                                     
@@ -3797,30 +3806,31 @@ if is_internet():
             #Consolited Data
             @app.server.route('/dash/urlToDownload_Consolidated_Analysis')
             def Download_Consolidated_Analysis():
-#                value = flask.request.args.get('value')
+                value = flask.request.args.get('value')
                 # create a dynamic csv or file here using `StringIO`
                 # (instead of writing to the file system)
                 #Consolidated graph which will be permanent below which tells us atleast one day graph
-                consolidated_dataframe2 = df4.copy()
-                consolidated_dataframe2 = consolidated_dataframe2.rename(columns={'Zoom id': 'Email'})
-                consolidated_dataframe2.drop_duplicates(subset=["Email"], keep='first', inplace=True)
-                consolidated_dataframe2.reset_index(inplace = True, drop = True) 
-                consolidated_dataframe3 = pd.merge(consolidated_dataframe2, Atleast_one_day_copy, how='left', on=['Email'])
-                consolidated_dataframe3.drop(consolidated_dataframe3.iloc[:, 5:10], inplace = True, axis = 1)
-                
-                consolidated_dataframe3 = consolidated_dataframe3.rename(columns={'Name_x': 'Name',
-                                                                                  'Gender_x': 'Gender',
-                                                                                  'College Name_x': 'College Name',
-                                                                                  'WhatsApp No._x':'WhatsApp No.'})
-                consolidated_dataframe3.rename(columns={'Total':'Total Time(Minutes)','Name':'Registered Name'}, inplace = True )
-                consolidated_dataframe3_day_list = consolidated_dataframe3.columns.tolist()[5:]
-                for consolidated_dataframe3_day_list_name in consolidated_dataframe3_day_list:
-                        consolidated_dataframe3[consolidated_dataframe3_day_list_name].fillna(0, inplace=True)
-                consolidated_dataframe3 = consolidated_dataframe3.sort_values("Total Time(Minutes)", ascending = False)
-                consolidated_dataframe3.reset_index(inplace = True, drop = True)
+                consolidated_dataframe4 = pd.read_csv("Reports/{}.csv".format(value))
+#                consolidated_dataframe2 = df4.copy()
+#                consolidated_dataframe2 = consolidated_dataframe2.rename(columns={'Zoom id': 'Email'})
+#                consolidated_dataframe2.drop_duplicates(subset=["Email"], keep='first', inplace=True)
+#                consolidated_dataframe2.reset_index(inplace = True, drop = True) 
+#                consolidated_dataframe3 = pd.merge(consolidated_dataframe2, Atleast_one_day_copy, how='left', on=['Email'])
+#                consolidated_dataframe3.drop(consolidated_dataframe3.iloc[:, 5:10], inplace = True, axis = 1)
+#                
+#                consolidated_dataframe3 = consolidated_dataframe3.rename(columns={'Name_x': 'Name',
+#                                                                                  'Gender_x': 'Gender',
+#                                                                                  'College Name_x': 'College Name',
+#                                                                                  'WhatsApp No._x':'WhatsApp No.'})
+#                consolidated_dataframe3.rename(columns={'Total':'Total Time(Minutes)','Name':'Registered Name'}, inplace = True )
+#                consolidated_dataframe3_day_list = consolidated_dataframe3.columns.tolist()[5:]
+#                for consolidated_dataframe3_day_list_name in consolidated_dataframe3_day_list:
+#                        consolidated_dataframe3[consolidated_dataframe3_day_list_name].fillna(0, inplace=True)
+#                consolidated_dataframe3 = consolidated_dataframe3.sort_values("Total Time(Minutes)", ascending = False)
+#                consolidated_dataframe3.reset_index(inplace = True, drop = True)
                 upper_list4 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
                 upper_list5 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
-                upper_list6 = [y.upper().strip() if type(y) == str else y for y in consolidated_dataframe3["Email"].values.tolist()]
+                upper_list6 = [y.upper().strip() if type(y) == str else y for y in consolidated_dataframe4["Email ID"].values.tolist()]
                                 
                 master_dataframe = []
                 for upper_list6_email in upper_list6:
@@ -4017,9 +4027,11 @@ if is_internet():
              
                 
             #difference of daywise present data    
-            @app.callback(dash.dependencies.Output('diff_head','children'),[dash.dependencies.Input('last_dd','value')])
+            @app.callback([dash.dependencies.Output('diff_head','children'),
+                           dash.dependencies.Output('my-link_difference_table','href')],
+                          [dash.dependencies.Input('last_dd','value')])
             def update_fig2(value):  
-                return value
+                return value,'/dash/urlToDownload_difference_table?value={}'.format(value)
                 
             #difference of daywise present data
             @app.callback([dash.dependencies.Output('diff_daywise','data'),
@@ -4078,6 +4090,73 @@ if is_internet():
             
                 except:
                     return html.Div(['There was an error processing this file.'])
+            
+            @app.server.route('/dash/urlToDownload_difference_table')
+            def Download_difference_table():
+                value = flask.request.args.get('value')
+                # create a dynamic csv or file here using `StringIO`
+                # (instead of writing to the file system)
+                v_list = value.split(" - ")
+                upper_list4 = [x.upper().strip() if type(x) == str else x for x in Master_sheet["Email ID"].values.tolist()]
+                upper_list5 = [z.upper().strip() if type(z) == str else z for z in Master_sheet["Zoom id"].values.tolist()]
+                if v_list[0] == 'Registered':
+                    dff1 = df4_copy
+                    dff2 = pd.read_csv("Reports/{}.csv".format(v_list[-1]))
+                    dff2_present_index = dff2[dff2["Zoom Name"].isnull()].index.tolist()[0]
+                    present_data2 = dff2.iloc[:dff2_present_index,]
+                    
+                    diff_data = []
+                    for diff_index,diff_email in enumerate(dff1["Your Gmail ID"].tolist()):
+                        if diff_email not in present_data2["Zoom id"].tolist():
+                            diff_data.append(dff1.iloc[diff_index,])
+                    diff_data = pd.DataFrame(diff_data) 
+                    diff_data["Time"] = np.nan
+                    diff_data.reset_index(inplace = True, drop = True)
+                    diff_data = diff_data[['Zoom Name','Your Gmail ID','Time','Name',
+                                           'Gender','College Name','WhatsApp No.','Zoom id']]
+                    diff_data = diff_data.rename(columns={'Your Gmail ID':'Email',
+                                                          'Name':'Registered Name'})
+                    
+                   
+                
+                else:
+                    dff1 = pd.read_csv("Reports/{}.csv".format(v_list[0]))
+                    dff1_present_index = dff1[dff1["Zoom Name"].isnull()].index.tolist()[0]
+                    present_data1 = dff1.iloc[:dff1_present_index,]
+                    dff2 = pd.read_csv("Reports/{}.csv".format(v_list[1]))
+                    dff2_present_index = dff2[dff2["Zoom Name"].isnull()].index.tolist()[0]
+                    present_data2 = dff2.iloc[:dff2_present_index,]
+                    
+                    diff_data = []
+                    for diff_index,diff_email in enumerate(present_data1["Zoom id"].tolist()):
+                        if diff_email not in present_data2["Zoom id"].tolist():
+                            diff_data.append(present_data1.iloc[diff_index,])
+                    diff_data = pd.DataFrame(diff_data) 
+                    diff_data = diff_data.sort_values("Time", ascending = False)
+                    diff_data.reset_index(inplace = True, drop = True)
+                    
+                upper_list6 = [y.upper().strip() if type(y) == str else y for y in diff_data["Email"].values.tolist()]
+                master_dataframe = []
+                for upper_list6_email in upper_list6:
+                    if upper_list6_email in upper_list4:
+                        upper_list4_index = upper_list4.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list4_index,])
+                    elif upper_list6_email in upper_list5:
+                        upper_list5_index = upper_list5.index(upper_list6_email)
+                        master_dataframe.append(Master_sheet.loc[upper_list5_index,])
+                master_dataframe = pd.DataFrame(master_dataframe) 
+                
+                str_io = io.StringIO()
+                master_dataframe.to_csv(str_io)
+                mem = io.BytesIO()
+                mem.write(str_io.getvalue().encode('utf-8'))
+                mem.seek(0)
+                str_io.close()
+            
+                return flask.send_file(mem,
+                                       mimetype='text/csv',
+                                       attachment_filename='Download_difference_{}.csv'.format(value),
+                                       as_attachment=True)
             
             
             if __name__ == '__main__':
