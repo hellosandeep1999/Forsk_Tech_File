@@ -392,6 +392,9 @@ if is_internet():
         #Before updated sheet
         before_updated_day = [] 
         
+        #Before updated sheet
+        create_daywise2 = [] 
+        
         
         prt_to_reg = pd.DataFrame(columns=['Zoom Name','Email','Time','Registered Name','Gender','College Name','WhatsApp No.','Zoom id'])
           
@@ -859,6 +862,10 @@ if is_internet():
                 sys.exit(1)
             
             
+            #create_daywise will store the participants dataset for daily trends
+            create_daywise2.append(df1)
+            
+            
             frame=[present_data(prt_to_reg),suspence_merge_data()]
             result=pd.concat(frame)
             result.reset_index(inplace = True, drop = True)
@@ -869,6 +876,7 @@ if is_internet():
          
                  
            
+            
         df4_copy["Matched"] = df4_copy["Matched"].fillna(False)
             
         
@@ -888,6 +896,10 @@ if is_internet():
                     for emp_email_index in range(len(present_data)):
                         if type(present_data["Email"][emp_email_index]) == float:
                             present_data["Email"][emp_email_index] = present_data["Zoom id"][emp_email_index]
+                        if type(present_data["Time"][emp_email_index]) == str:
+                            present_data["Time"][emp_email_index] = int(present_data["Time"][emp_email_index])
+                    present_data = present_data.sort_values("Time", ascending = False)
+                    present_data.reset_index(inplace = True, drop = True)
                     present_data = present_data.append(pd.Series("nan"), ignore_index=True)
                     present_data = present_data.drop([0],axis=1) 
                     new_row={"Zoom Name":"Suspense","Email":"Data"}
@@ -3031,7 +3043,7 @@ if is_internet():
                 
                 
                 
-                #A horizontal line:
+                #A horizontal line:  #-----------------------------------------------------
                 html.H1(
                     children='',
                     style={
@@ -3253,6 +3265,146 @@ if is_internet():
                         ], className = 'row'
                     ),className="p-5",
                 ),
+                       
+                        
+               
+                
+                #Only For certificate registration.
+                        
+                        
+                 #A horizontal line:  #-----------------------------------------------------
+                html.H1(
+                    children='',
+                    style={
+                        'textAlign': 'center',
+                        'color': colors['color1'],
+                        'backgroundColor': 'black',
+                        'borderRadius': '5px',
+                        'margin': '20px',
+                        'padding': '2px',
+                        'margin-bottom':'50px',
+                        'font-size': '10px',
+                        'margin-top':'120px'
+                        
+                    }
+                ),
+
+               
+                
+                
+                #Suspence Data Table of All Day
+                dbc.Container(
+                html.Div([
+                        html.Div(
+                         [
+                                    html.A(
+                                    html.Button('Export', id='download-button_only_want_certificate'), 
+                                    id='my-link_only_want_certificate',
+                                    href = '/dash/urlToDownload_only_want_certificate?value={}'.format(Meeting_id)),
+                                    ],className='two columns',
+                                   style={'margin-bottom':'15px',
+                                          'margin-top':'85px',}
+                        ),
+                        html.Div(
+                                    [
+                                        html.H3(
+                                            children='Not Registered But Want Certificate',
+                                            style={
+                                                'textAlign': 'Right',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '28px',
+                                                'margin-bottom':'30px',
+                                                'margin-top':'70px',
+                                                'font': '28px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                        ],className='seven columns',
+                                    style={'padding-top': '30px'}
+                        ),
+                       html.Div(
+                                    [
+                                        html.H3(
+                                            children='Count: ',
+                                            style={
+                                                'textAlign': 'Right',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'30px',
+                                                'margin-top':'70px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                    ],
+                                    className='two columns',
+                                    style={'padding-top': '30px'}
+                                ),
+                        html.Div(
+                                    [
+                                        html.H3(
+                                            id = 'only_want_certificate',
+                                            style={
+                                                'textAlign': 'Left',
+                                                'color': colors['color2'],
+                                                'margin': 'auto',
+                                                'font-size': '25px',
+                                                'margin-bottom':'30px',
+                                                'margin-top':'70px',
+                                                'font': '20px Arial, sans-serif',
+                                                
+                                            }
+                                        ),
+                                    ],
+                                    className='one columns',
+                                    style={'padding-top': '30px'}
+                                )
+                    ],className = 'row'
+                ),
+                 ),                   
+                                    
+                     dbc.Container(
+                     html.Div(
+                        [
+                                
+                            dash_table.DataTable(
+                            id='only_want_certificate_data',
+                            columns=[
+                                {"name": i, "id": i} for i in Not_Present_any_col_list], 
+                           css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
+                           page_current=0,
+                           page_size=PAGE_SIZE,
+                           page_action='custom',
+                           style_table={'overflowX': 'auto'},
+                           style_cell={'height': 'auto',
+                                       'textAlign': 'left',
+                                       'minWidth': '200px', 'width': '230px', 'maxWidth': '240px',
+                                       'whiteSpace': 'normal'}, 
+                           style_data={ 'border': '1px solid blue' ,
+                                       'margin-left':'20px',
+                                       'margin-right':'20px',
+                                       'whiteSpace': 'normal',
+                                        'height': 'auto',
+                                        'lineHeight': '15px'},
+#                            style_cell_conditional=[
+#                                        {'if': {'column_id': 'Email'},
+#                                               'width': '18%'},
+#                            ],
+                            style_header={
+                              'backgroundColor': 'rgb(230, 230, 230)',
+                              'fontWeight': 'bold'
+                        },
+                    
+                          
+                            ),
+                            
+                            
+                        ], className = 'row'
+                    ),className="p-5",
+                ),
+                                    
                                     
                                     
 
@@ -3307,8 +3459,8 @@ if is_internet():
             def update_fig(value):
                 try:
                     create_day_wise_index = reports_days_name_list.index(value)
-                    if len(create_daywise[create_day_wise_index].columns.tolist()) == 10:
-                        dff = create_daywise[create_day_wise_index]
+                    if len(create_daywise2[create_day_wise_index].columns.tolist()) == 5:
+                        dff = create_daywise2[create_day_wise_index]
                         daily_count = len(dff)
                         if len(dff["Join"][0].split()) == 2:
                             for i in range(len(dff)):
@@ -4158,6 +4310,113 @@ if is_internet():
                                        attachment_filename='Download_difference_{}.csv'.format(value),
                                        as_attachment=True)
             
+            
+            
+            #certificate want only 
+            @app.callback([dash.dependencies.Output('only_want_certificate_data','data'),
+                           dash.dependencies.Output('only_want_certificate','children'),
+                           dash.dependencies.Output('only_want_certificate_data','page_count')],
+                          [dash.dependencies.Input('only_want_certificate_data', "page_current"),
+                           dash.dependencies.Input('only_want_certificate_data', "page_size")])
+
+            def update_fig(page_current,page_size):
+                try:
+                    only_want_certificate_col_list = ['Name','Email','Gender','College Name','WhatsApp No.']
+                    if os.path.exists("{}-pay.xlsx".format(Meeting_id)) and os.path.exists("{}.xlsx".format(Meeting_id)):
+                        #Not Any day present student Table
+                        
+                        
+                        registered = pd.read_excel("{}.xlsx".format(Meeting_id))
+                        certificate_reg = pd.read_excel("{}-pay.xlsx".format(Meeting_id))
+                        mail_column_name1 = []
+                        for column1 in registered.columns.tolist():
+                            if 'MAIL' in column1.upper():
+                                mail_column_name1.append(column1)
+                                break
+                        mail_column_name2 = []
+                        for column2 in certificate_reg.columns.tolist():
+                            if 'MAIL' in column2.upper():
+                                mail_column_name2.append(column2)
+                                break
+                        upper_list8 = [y.upper().strip() if type(y) == str else y for y in registered[mail_column_name1[0]].values.tolist()]
+                        upper_list9 = [y.upper().strip() if type(y) == str else y for y in certificate_reg[mail_column_name2[0]].values.tolist()]
+                        diff_data = []
+                        for diff_index,diff_email in enumerate(upper_list9):
+                            if diff_email not in upper_list8:
+                                diff_data.append(certificate_reg.iloc[diff_index,])
+                        diff_data = pd.DataFrame(diff_data) 
+                        diff_data_column_name = []
+                        def diff_data_column_lis2(df4_column2):
+                            for column_name2 in certificate_reg.columns.tolist():
+                                if df4_column2 in column_name2.upper():
+                                    if column_name2 not in diff_data_column_name:
+                                        diff_data_column_name.append(column_name2)
+                                        break
+                        check_list2 = ['NAME','MAIL','GENDER','COLLEGE','WHATSAPP']
+                        for check_list2_name in check_list2:
+                                diff_data_column_lis2(check_list2_name)
+
+                        diff_data = diff_data[diff_data_column_name]
+                        diff_data.columns = only_want_certificate_col_list
+
+                        count = len(diff_data)
+                        page_count_value = math.ceil(len(diff_data)/10),
+                        data=diff_data.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data,count,page_count_value
+                    else:
+                        diff_data = pd.DataFrame(columns = only_want_certificate_col_list)
+                        count = len(diff_data)
+                        page_count_value = math.ceil(len(diff_data)/10),
+                        data=diff_data.iloc[page_current*page_size:(page_current+ 1)*page_size].to_dict('records')
+                        return data,count,page_count_value
+                    
+                except:
+                    return html.Div(['There was an error processing this file.']) 
+            
+            
+            
+            #certificate want only  
+            @app.server.route('/dash/urlToDownload_only_want_certificate')
+            def Download_only_want_certificate():
+                value = flask.request.args.get('value')
+                # create a dynamic csv or file here using `StringIO`
+                # (instead of writing to the file system)
+                only_want_certificate_col_list = ['Name','Email','Gender','College Name','WhatsApp No.']
+                if os.path.exists("{}-pay.xlsx".format(Meeting_id)) and os.path.exists("{}.xlsx".format(Meeting_id)):
+                        #Not Any day present student Table
+                        registered = pd.read_excel("{}.xlsx".format(value))
+                        certificate_reg = pd.read_excel("{}-pay.xlsx".format(value))
+                        mail_column_name1 = []
+                        for column1 in registered.columns.tolist():
+                            if 'MAIL' in column1.upper():
+                                mail_column_name1.append(column1)
+                                break
+                        mail_column_name2 = []
+                        for column2 in certificate_reg.columns.tolist():
+                            if 'MAIL' in column2.upper():
+                                mail_column_name2.append(column2)
+                                break
+                        upper_list8 = [y.upper().strip() if type(y) == str else y for y in registered[mail_column_name1[0]].values.tolist()]
+                        upper_list9 = [y.upper().strip() if type(y) == str else y for y in certificate_reg[mail_column_name2[0]].values.tolist()]
+                        diff_data = []
+                        for diff_index,diff_email in enumerate(upper_list9):
+                            if diff_email not in upper_list8:
+                                diff_data.append(certificate_reg.iloc[diff_index,])
+                        diff_data = pd.DataFrame(diff_data)
+                else:
+                        diff_data = pd.DataFrame(columns = only_want_certificate_col_list)                                 
+                
+                str_io = io.StringIO()
+                diff_data.to_csv(str_io)
+                mem = io.BytesIO()
+                mem.write(str_io.getvalue().encode('utf-8'))
+                mem.seek(0)
+                str_io.close()
+            
+                return flask.send_file(mem,
+                                       mimetype='text/csv',
+                                       attachment_filename='download_only_want_certificate.csv',
+                                       as_attachment=True)
             
             if __name__ == '__main__':
                 Timer(1, open_browser).start();
