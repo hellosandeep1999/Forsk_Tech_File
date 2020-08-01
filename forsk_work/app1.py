@@ -62,6 +62,36 @@ app.layout = html.Div(
 
     dcc.Graph(id = 'graph'),
     
+    
+    #search data             
+    html.Div([
+            dcc.Store(id = 'memory'),
+                    html.Div(
+                        [
+                            html.Div(
+                                    [
+                                         html.H3(children=''),
+                                    ],
+                                    className='five columns',
+                                    style={'padding-top': '30px'}
+                            ),
+                            html.Div(
+                                    [
+                                        html.Button(children='click and see the pie chart', id='button_chart',n_clicks=0)
+                                    ],
+                                    className='seven columns',
+                                    style={'padding-top': '30px'}
+                            )             
+                        ],className='row'
+                    ),
+            
+
+           ], className = 'row',  style = {'margin-top': 50,'padding': 15}
+        ),
+                            
+    dcc.Graph(id = 'graph2'),
+                    
+    
      
 ]),
     
@@ -71,6 +101,29 @@ app.layout = html.Div(
     
     
     
+@app.callback(dash.dependencies.Output('graph2','figure'),
+              [dash.dependencies.Input('button_chart', 'n_clicks')])
+
+def update_fig1(n_clicks):
+    if n_clicks:
+        labels = ['Oxygen','Hydrogen','Carbon_Dioxide','Nitrogen']
+        values = [4500, 2500, 1053, 500]
+        df = pd.DataFrame(list(zip(labels, values)), 
+                   columns =['labels', 'values']) 
+        figure = px.pie(df, values='values', names='labels')
+        figure.update_traces(textposition='inside')
+        figure.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+    else:
+        labels = []
+        values = []
+        df = pd.DataFrame(list(zip(labels, values)), 
+                   columns =['labels', 'values']) 
+        figure = px.pie(df, values='values', names='labels')
+
+    return figure
+
+
+
 @app.callback(dash.dependencies.Output('graph','figure'),[dash.dependencies.Input('dd','value')])
 
 def update_fig(value):
