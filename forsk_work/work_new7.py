@@ -1646,7 +1646,7 @@ if is_internet():
         #Upload the complete master sheet   
         Master_sheet.drop_duplicates(subset=["Email ID"], keep='first', inplace=True)
         Master_sheet.reset_index(inplace = True, drop = True)
-#        gd.set_with_dataframe(sheet, Master_sheet)        
+        gd.set_with_dataframe(sheet, Master_sheet)        
                 
     
     
